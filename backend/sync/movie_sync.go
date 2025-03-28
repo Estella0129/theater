@@ -22,7 +22,7 @@ func SyncMovies() error {
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("accept", "application/json")
-	req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1M2EyN2MzYzA1MDQ0Mzk0ZGE1NjQ0NTdhYmVlNWY1ZCIsIm5iZiI6MTcyNzQxOTQwMS42MjcsInN1YiI6IjY2ZjY1NDA5YWE3ZTVmYTIwMjk2NWE5ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.miOSW9RORTxh-vNgGgZhmIjkWqrZX3TIBreHJJOZKVQ")
+	req.Header.Add("Authorization", "Bearer $token")
 
 	res, _ := http.DefaultClient.Do(req)
 
