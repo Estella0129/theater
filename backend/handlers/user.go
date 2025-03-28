@@ -1,0 +1,201 @@
+package handlers
+
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// RegisterUser 用户注册
+func RegisterUser(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	// 密码加密
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	// 创建用户
+	result := config.DB.Create(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	// 清除密码后返回用户信息
+	user.Password = ""
+	c.JSON(http.StatusCreated, user)
+}
+
+// LoginUser 用户登录
+func LoginUser(c *gin.Context) {
+	var loginData struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&loginData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data"})
+		return
+	}
+
+	var user models.User
+	result := config.DB.Where("username = ?", loginData.Username).First(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// 验证密码
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginData.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// TODO: 生成JWT token
+
+	// 清除密码后返回用户信息
+	user.Password = ""
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+		// "token": token, // TODO: 返回JWT token
+	})
+}
+
+// GetUsers 获取用户列表
+func GetUsers(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	var users []models.User
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总记录数
+	config.DB.Model(&models.User{}).Count(&total)
+
+	// 获取分页数据
+	result := config.DB.Select("id, username, email, role, created_at, updated_at").Offset(offset).Limit(pageSize).Find(&users)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":        page,
+		"page_size":   pageSize,
+		"total":       total,
+		"total_pages": (total + int64(pageSize) - 1) / int64(pageSize),
+		"results":     users,
+	})
+}
+
+// GetUser 获取单个用户信息
+func GetUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user models.User
+	result := config.DB.Select("id, username, email, role, created_at, updated_at").First(&user, id)
+	if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+// UpdateUser 更新用户信息
+func UpdateUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var updateData struct {
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}
+
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid update data"})
+		return
+	}
+
+	// 更新用户信息
+	result := config.DB.Model(&user).Updates(models.User{
+		Email: updateData.Email,
+		Role:  updateData.Role,
+	})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+// DeleteUser 删除用户
+func DeleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	result := config.DB.Delete(&models.User{}, id)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+// CreateUser 管理员创建用户
+func CreateUser(c *gin.Context) {
+	// 验证当前用户是否为管理员
+	// TODO: 从JWT token中获取当前用户角色
+	// currentUserRole := getUserRoleFromToken(c)
+	// if currentUserRole != "admin" {
+	// 	c.JSON(http.StatusForbidden, gin.H{"error": "Only admin can create users"})
+	// 	return
+	// }
+
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	// 密码加密
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	// 创建用户
+	result := config.DB.Create(&user)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	// 清除密码后返回用户信息
+	user.Password = ""
+	c.JSON(http.StatusCreated, user)
+}
