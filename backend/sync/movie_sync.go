@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -17,46 +18,93 @@ import (
 func SyncMovies() error {
 	// 1. 从TMDB API获取电影数据
 	var err error
-	url := "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=zh-CN&page=2&sort_by=popularity.desc"
 
-	req, _ := http.NewRequest("GET", url, nil)
-
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("Authorization", "Bearer $token")
-
-	res, _ := http.DefaultClient.Do(req)
-
-	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body)
-	if err != nil {
-		return err
+	fmt.Println(err)
+	// 分页获取所有电影数据
+	page := 1
+	totalPages := 1
+	var allResults []struct {
+		ID               int     `json:"id"`
+		Title            string  `json:"title"`
+		OriginalTitle    string  `json:"original_title"`
+		OriginalLanguage string  `json:"original_language"`
+		Overview         string  `json:"overview"`
+		PosterPath       string  `json:"poster_path"`
+		BackdropPath     string  `json:"backdrop_path"`
+		ReleaseDate      string  `json:"release_date"`
+		Adult            bool    `json:"adult"`
+		Popularity       float64 `json:"popularity"`
+		VoteAverage      float64 `json:"vote_average"`
+		VoteCount        int     `json:"vote_count"`
+		Video            bool    `json:"video"`
+		GenreIDs         []int   `json:"genre_ids"`
 	}
 
-	var tmdbResponse struct {
-		Results []struct {
-			ID               int     `json:"id"`
-			Title            string  `json:"title"`
-			OriginalTitle    string  `json:"original_title"`
-			OriginalLanguage string  `json:"original_language"`
-			Overview         string  `json:"overview"`
-			PosterPath       string  `json:"poster_path"`
-			BackdropPath     string  `json:"backdrop_path"`
-			ReleaseDate      string  `json:"release_date"`
-			Adult            bool    `json:"adult"`
-			Popularity       float64 `json:"popularity"`
-			VoteAverage      float64 `json:"vote_average"`
-			VoteCount        int     `json:"vote_count"`
-			Video            bool    `json:"video"`
-			GenreIDs         []int   `json:"genre_ids"`
+	for page <= totalPages {
+		// 添加适当的延迟避免API限流
+		time.Sleep(500 * time.Millisecond)
+
+		url := fmt.Sprintf("https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=zh-CN&page=%d&sort_by=popularity.desc", page)
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("创建请求失败: %v", err)
 		}
+
+		req.Header.Add("accept", "application/json")
+		req.Header.Add("Authorization", "Bearer $token")
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("请求失败: %v", err)
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != http.StatusOK {
+			return fmt.Errorf("API返回错误状态码: %d", res.StatusCode)
+		}
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("读取响应体失败: %v", err)
+		}
+
+		var tmdbResponse struct {
+			Page         int `json:"page"`
+			TotalPages   int `json:"total_pages"`
+			TotalResults int `json:"total_results"`
+			Results      []struct {
+				ID               int     `json:"id"`
+				Title            string  `json:"title"`
+				OriginalTitle    string  `json:"original_title"`
+				OriginalLanguage string  `json:"original_language"`
+				Overview         string  `json:"overview"`
+				PosterPath       string  `json:"poster_path"`
+				BackdropPath     string  `json:"backdrop_path"`
+				ReleaseDate      string  `json:"release_date"`
+				Adult            bool    `json:"adult"`
+				Popularity       float64 `json:"popularity"`
+				VoteAverage      float64 `json:"vote_average"`
+				VoteCount        int     `json:"vote_count"`
+				Video            bool    `json:"video"`
+				GenreIDs         []int   `json:"genre_ids"`
+			}
+		}
+
+		if err := json.Unmarshal(body, &tmdbResponse); err != nil {
+			return fmt.Errorf("解析JSON失败: %v", err)
+		}
+
+		totalPages = tmdbResponse.TotalPages
+		if totalPages > 10 {
+			totalPages = 10
+		}
+		allResults = append(allResults, tmdbResponse.Results...)
+		page++
 	}
 
-	if err := json.Unmarshal(body, &tmdbResponse); err != nil {
-		return err
-	}
-
-	// 2. 数据转换和处理
-	for _, tmdbMovie := range tmdbResponse.Results {
+	// 使用收集到的所有结果进行处理
+	for _, tmdbMovie := range allResults {
 
 		releaseDate, _ := time.Parse("2006-01-02", tmdbMovie.ReleaseDate)
 
@@ -77,7 +125,7 @@ func SyncMovies() error {
 		}
 
 		// 3. 使用GORM保存到SQLite
-		result := config.DB.Create(&movie)
+		result := config.DB.FirstOrCreate(&movie)
 		if result.Error != nil {
 			return result.Error
 		}
