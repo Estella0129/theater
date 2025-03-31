@@ -106,6 +106,40 @@ func DeleteMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Movie deleted successfully"})
 }
 
+// SearchMovies 搜索电影
+func SearchMovies(c *gin.Context) {
+	query := c.Query("query")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	var movies []models.Movie
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总记录数
+	db := config.DB.Model(&models.Movie{})
+	if query != "" {
+		db = db.Where("title LIKE ?", "%"+query+"%")
+	}
+	db.Count(&total)
+
+	// 获取分页数据
+	result := db.Offset(offset).Limit(pageSize).Find(&movies)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search movies"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":        page,
+		"page_size":   pageSize,
+		"total":       total,
+		"total_pages": (total + int64(pageSize) - 1) / int64(pageSize),
+		"results":     movies,
+	})
+}
+
 // GetAdminMovies 获取电影列表（管理后台）
 func GetAdminMovies(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

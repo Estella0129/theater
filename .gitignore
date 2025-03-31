@@ -9,6 +9,7 @@ frontend/.env.*.local
 backend/.idea/
 backend/theater.db
 backend/go.sum
+backend/config/config.yaml
 
 # General
 .DS_Store

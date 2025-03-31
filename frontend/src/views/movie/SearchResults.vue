@@ -1,12 +1,12 @@
 <template>
-  <div class="movie-list-container">
-    <el-card class="movie-list-card">
+  <div class="search-results-container">
+    <el-card class="search-results-card">
       <template #header>
-        <h2>电影列表</h2>
+        <h2>搜索结果</h2>
+        <div class="search-query">搜索关键词: "{{ searchQuery }}"</div>
       </template>
-      
 
-      <el-table :data="movieStore.movies" style="width: 100%">
+      <el-table :data="movieStore.searchResults" style="width: 100%" v-loading="loading">
         <el-table-column prop="title" label="电影名称" width="180" />
         <el-table-column prop="original_title" label="原名" width="180" />
         <el-table-column prop="release_date" label="上映日期">
@@ -20,7 +20,7 @@
           </template>
         </el-table-column>
       </el-table>
-      
+
       <el-pagination
         background
         layout="prev, pager, next"
@@ -29,56 +29,57 @@
         @current-change="handlePageChange"
         style="margin-top: 20px; justify-content: center;"
       />
-      
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useMovieStore } from '../../stores/movie'
 
+const route = useRoute()
 const router = useRouter()
 const movieStore = useMovieStore()
-const movies = ref([])
+
+const searchQuery = ref(route.query.q || '')
 const loading = ref(false)
 const currentPage = ref(1)
-const totalPages = ref(1)
-
-const loadMovies = async () => {
-  loading.value = true
-  try {
-    const data = await movieStore.fetchMovies(currentPage.value)
-    totalPages.value = data.total_pages
-  } finally {
-    loading.value = false
-  }
-}
+const totalPages = computed(() => movieStore.searchTotalPages)
 
 onMounted(async () => {
-  await loadMovies()
-  
-  
+  if (searchQuery.value) {
+    loading.value = true
+    await movieStore.searchMovies(searchQuery.value, currentPage.value)
+    loading.value = false
+  }
 })
+
+const handlePageChange = async (page) => {
+  currentPage.value = page
+  loading.value = true
+  await movieStore.searchMovies(searchQuery.value, page)
+  loading.value = false
+}
 
 const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)
 }
-
-const handlePageChange = (newPage) => {
-  currentPage.value = newPage
-  loadMovies()
-}
 </script>
 
 <style scoped>
-.movie-list-container {
+.search-results-container {
   padding: 20px;
 }
 
-.movie-list-card {
+.search-results-card {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.search-query {
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
 }
 </style>

@@ -8,6 +8,17 @@
             <router-link to="/movies">电影</router-link>
           </div>
           <div class="nav-right">
+            <el-input
+              v-model="searchQuery"
+              placeholder="搜索电影"
+              class="search-input"
+              @keyup.enter="handleSearch"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><search /></el-icon>
+              </template>
+            </el-input>
             <template v-if="!isLoggedIn">
               <router-link to="/login" class="login-btn">登录</router-link>
               <router-link to="/register" class="register-btn">注册</router-link>
@@ -27,14 +38,26 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from './stores/user'
+import { useMovieStore } from './stores/movie'
+import { Search } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+const searchQuery = ref('')
+const movieStore = useMovieStore()
+
+const handleSearch = async () => {
+  if (searchQuery.value.trim()) {
+    await movieStore.searchMovies(searchQuery.value)
+    router.push({ path: '/search', query: { q: searchQuery.value } })
+  }
+}
 
 const handleLogout = async () => {
   userStore.logout()

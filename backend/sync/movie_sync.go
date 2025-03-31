@@ -52,8 +52,13 @@ func SyncMovies() error {
 		}
 
 		req.Header.Add("accept", "application/json")
-		req.Header.Add("Authorization", "Bearer $token")
+		token, err := config.GetTMDBToken()
+		if err != nil {
+			return fmt.Errorf("获取TMDB Token失败: %v", err)
+		}
+		req.Header.Add("Authorization", "Bearer "+token)
 
+		fmt.Println("request", url)
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return fmt.Errorf("请求失败: %v", err)
