@@ -13,12 +13,12 @@
               placeholder="搜索电影"
               class="search-input"
               @keyup.enter="handleSearch"
-              clearable
             >
-              <template #prefix>
-                <el-icon><search /></el-icon>
+              <template #append>
+                <el-button :icon="Search" @click="handleSearch" />
               </template>
             </el-input>
+            
             <template v-if="!isLoggedIn">
               <router-link to="/login" class="login-btn">登录</router-link>
               <router-link to="/register" class="register-btn">注册</router-link>
@@ -103,6 +103,11 @@ nav a {
 
 nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.search-input {
+  width: 200px;
+  margin-right: 10px;
 }
 
 .login-btn,

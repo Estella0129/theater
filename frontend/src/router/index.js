@@ -36,6 +36,11 @@ const router = createRouter({
       component: () => import('../views/movie/MovieDetail.vue')
     },
     {
+      path: '/search',
+      name: 'SearchResults',
+      component: () => import('../views/movie/SearchResults.vue')
+    },
+    {
       path: '/admin',
       name: 'Admin',
       component: () => import('../views/admin/Layout.vue'),
