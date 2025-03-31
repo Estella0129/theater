@@ -106,37 +106,54 @@ func DeleteMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Movie deleted successfully"})
 }
 
-// SearchMovies 搜索电影
+// SearchMovies 通过关键字搜索电影
 func SearchMovies(c *gin.Context) {
-	query := c.Query("query")
+	// 参数解析
+	keyword := c.Query("query")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	pageSize := 20
 
-	var movies []models.Movie
-	var total int64
-
-	offset := (page - 1) * pageSize
-
-	// 获取总记录数
-	db := config.DB.Model(&models.Movie{})
-	if query != "" {
-		db = db.Where("title LIKE ?", "%"+query+"%")
-	}
-	db.Count(&total)
-
-	// 获取分页数据
-	result := db.Offset(offset).Limit(pageSize).Find(&movies)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search movies"})
+	// 验证参数
+	if len(keyword) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "搜索关键字至少需要2个字符",
+		})
 		return
 	}
 
+	// 构造查询
+	query := config.DB.Model(&models.Movie{}).
+		Where("title LIKE ? OR description LIKE ?",
+			"%"+keyword+"%",
+			"%"+keyword+"%",
+		)
+
+	// 获取总数
+	var total int64
+	query.Count(&total)
+
+	// 分页查询
+	var movies []models.Movie
+	result := query.Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Find(&movies)
+
+	// 错误处理
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "数据库查询失败",
+		})
+		return
+	}
+
+	// 返回结果
 	c.JSON(http.StatusOK, gin.H{
-		"page":        page,
-		"page_size":   pageSize,
-		"total":       total,
-		"total_pages": (total + int64(pageSize) - 1) / int64(pageSize),
-		"results":     movies,
+		"data": movies,
+		"meta": gin.H{
+			"current_page": page,
+			"per_page":     pageSize,
+			"total":        total,
+		},
 	})
 }
 
