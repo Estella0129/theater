@@ -7,6 +7,7 @@ import (
 )
 
 type Movie struct {
+	gorm.Model
 	ID                  uint           `json:"id" gorm:"primaryKey"`
 	Title               string         `json:"title"`
 	OriginalTitle       string         `json:"original_title"`
@@ -47,7 +48,7 @@ type Collection struct {
 type ProductionCompany struct {
 	ID            uint   `json:"id" gorm:"primaryKey"`
 	MovieID       uint   `json:"movie_id"`
-	Name          string `json:\"name\"`
+	Name          string `json:"name"`
 	LogoPath      string `json:"logo_path"`
 	OriginCountry string `json:"origin_country"`
 }

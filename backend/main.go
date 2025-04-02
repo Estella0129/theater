@@ -40,11 +40,11 @@ func main() {
 			admin.DELETE("/users/:id", handlers.DeleteUser) // 删除用户
 
 			// 电影管理路由
-			admin.POST("/movies", handlers.CreateMovie)        // 创建电影
-			admin.GET("/movies", handlers.GetAdminMovies)      // 获取电影列表
-			admin.PUT("/movies/:id", handlers.UpdateMovie)     // 更新电影信息
-			admin.DELETE("/movies/:id", handlers.DeleteMovie)  // 删除电影
-			admin.GET("/movies/search", handlers.SearchMovies) // 搜索电影
+			admin.POST("/movies", handlers.CreateMovie)         // 创建电影
+			admin.GET("/movies", handlers.GetAdminMovies)       // 获取电影列表
+			admin.PUT("/movies/:id", handlers.UpdateMovie)      // 更新电影信息
+			admin.DELETE("/movies/:id", handlers.DeleteMovie)   // 删除电影
+			admin.GET("/movies/search?", handlers.SearchMovies) // 搜索电影
 		}
 	}
 

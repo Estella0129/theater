@@ -3,12 +3,49 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// AuthMiddleware JWT验证中间件
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			c.Abort()
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return []byte(config.JWTSecret), nil
+		})
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("user_id", claims["user_id"])
+			c.Set("role", claims["role"])
+			c.Next()
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+	}
+}
 
 // RegisterUser 用户注册
 func RegisterUser(c *gin.Context) {
@@ -49,7 +86,7 @@ func LoginUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login data"})
 		return
 	}
-
+	//查询用户
 	var user models.User
 	result := config.DB.Where("username = ?", loginData.Username).First(&user)
 	if result.Error != nil {
@@ -64,13 +101,26 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	// TODO: 生成JWT token
+	// 生成JWT token
+	Role := 0
+	userID := 0
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userID,
+		"role":    Role,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // 24小时后过期
+	})
+
+	tokenString, err := token.SignedString([]byte(config.JWTSecret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
 
 	// 清除密码后返回用户信息
 	user.Password = ""
 	c.JSON(http.StatusOK, gin.H{
-		"user": user,
-		// "token": token, // TODO: 返回JWT token
+		"user":  user,
+		"token": tokenString,
 	})
 }
 

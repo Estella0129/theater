@@ -24,8 +24,9 @@
       <el-pagination
         background
         layout="prev, pager, next"
-        :total="totalPages * 10"
+        :total="totalPages * 20"
         :current-page="currentPage"
+        :page-size="20"
         @current-change="handlePageChange"
         style="margin-top: 20px; justify-content: center;"
       />
@@ -49,8 +50,10 @@ const totalPages = ref(1)
 const loadMovies = async () => {
   loading.value = true
   try {
-    const data = await movieStore.fetchMovies(currentPage.value)
+    const data = await movieStore.fetchMovies(currentPage.value, 20)
     totalPages.value = data.total_pages
+    currentPage.value = data.page
+    movies.value = data.results
   } finally {
     loading.value = false
   }
