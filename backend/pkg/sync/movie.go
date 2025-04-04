@@ -1,17 +1,13 @@
-package main
+package sync
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"time"
-
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/models"
-	"github.com/gin-gonic/gin"
+	"io"
+	"net/http"
+	"time"
 )
 
 // SyncMovies 从TiDB同步电影信息并写入本地数据库
@@ -137,74 +133,4 @@ func SyncMovies() error {
 	}
 
 	return nil
-}
-
-// StartSyncService 启动定时同步服务
-func main() {
-	// 解析命令行参数
-	manual := flag.Bool("manual", false, "手动执行同步")
-	interval := flag.Int("interval", 60, "定时同步间隔(分钟)")
-	flag.Parse()
-
-	// 初始化数据库
-	config.InitDB()
-
-	if *manual {
-		// 手动执行同步
-		if err := SyncMovies(); err != nil {
-			log.Fatalf("同步失败: %v", err)
-		}
-		log.Println("同步成功")
-		return
-	}
-
-	// 定时同步
-	duration := time.Duration(*interval) * time.Minute
-	log.Printf("启动定时同步服务，间隔 %v", duration)
-	ticker := time.NewTicker(duration)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := SyncMovies(); err != nil {
-				log.Printf("同步失败: %v", err)
-			}
-		}
-	}
-}
-
-func StartSyncService() {
-	ticker := time.NewTicker(1 * time.Hour) // 每小时同步一次
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := SyncMovies(); err != nil {
-				log.Printf("同步电影信息失败: %v", err)
-			}
-		}
-	}
-}
-
-// SetupSyncRoutes 设置同步相关的API路由
-func SetupSyncRoutes(r *gin.Engine) {
-	r.POST("/api/sync/movies", func(c *gin.Context) {
-		if err := SyncMovies(); err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(200, gin.H{"message": "电影同步成功"})
-	})
-}
-
-// GetMovies 从本地数据库获取电影信息
-func GetMovies(c *gin.Context) {
-	var movies []models.Movie
-	if err := config.DB.Find(&movies).Error; err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(200, movies)
 }
