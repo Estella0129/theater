@@ -4,7 +4,6 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"flag"
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/pkg/sync"
 	"log"
@@ -12,6 +11,9 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+var manual *bool
+var interval *int
 
 // syncCmd represents the sync command
 var syncCmd = &cobra.Command{
@@ -25,9 +27,6 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 解析命令行参数
-		manual := flag.Bool("manual", false, "手动执行同步")
-		interval := flag.Int("interval", 60, "定时同步间隔(分钟)")
-		flag.Parse()
 
 		// 初始化数据库
 		config.InitDB()
@@ -65,9 +64,10 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// syncCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//syncCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// syncCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	manual = syncCmd.Flags().BoolP("manual", "m", true, "手动执行同步")
+	interval = syncCmd.Flags().IntP("interval", "i", 60, "定时同步间隔(分钟)")
 }
