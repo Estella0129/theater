@@ -199,46 +199,12 @@ func SetupSyncRoutes(r *gin.Engine) {
 	})
 }
 
-// SetupMovieQueryRoutes 设置电影查询相关的API路由
-func SetupMovieQueryRoutes(r *gin.Engine) {
-	r.GET("/api/query/movies", func(c *gin.Context) {
-		// 假设这里有一个函数来查询电影
-		movies, err := QueryMovies()
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(200, gin.H{"message": "电影查询成功", "movies": movies})
-	})
-}
-
-// QueryMoviesFromDB 查询本地数据库中的电影数据，支持分页和基本过滤
-func QueryMoviesFromDB(page, pageSize int, filters map[string]interface{}) ([]models.Movie, int64, error) {
+// GetMovies 从本地数据库获取电影信息
+func GetMovies(c *gin.Context) {
 	var movies []models.Movie
-	var total int64
-
-	offset := (page - 1) * pageSize
-
-	// 获取总记录数
-	db := config.DB.Model(&models.Movie{})
-	if len(filters) > 0 {
-		for key, value := range filters {
-			db = db.Where(key, value)
-		}
+	if err := config.DB.Find(&movies).Error; err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
-	db.Count(&total)
-
-	// 获取分页数据
-	result := db.Offset(offset).Limit(pageSize).Find(&movies)
-	if result.Error != nil {
-		return nil, 0, result.Error
-	}
-
-	return movies, total, nil
-}
-
-// QueryMovies 兼容旧版本的查询函数
-func QueryMovies() ([]models.Movie, error) {
-	movies, _, err := QueryMoviesFromDB(1, 100, nil)
-	return movies, err
+	c.JSON(200, movies)
 }

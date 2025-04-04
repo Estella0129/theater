@@ -69,8 +69,8 @@ const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)
 }
 
-const handlePageChange = (newPage) => {
-  currentPage.value = newPage
+const handlePageChange = (Page) => {
+  currentPage.value = Page
   loadMovies()
 }
 </script>

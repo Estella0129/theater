@@ -3,37 +3,66 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/models"
 	"github.com/gin-gonic/gin"
 )
 
-// GetMovies 获取电影列表，支持分页
+// GetMovies 获取电影列表，支持分页和搜索
 func GetMovies(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	// 获取并验证分页参数
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	if err != nil || pageSize < 1 {
+		pageSize = 20
+	}
+
+	searchQuery := strings.TrimSpace(c.Query("query"))
+	if searchQuery == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "搜索词不能为空"})
+		return
+	}
 
 	var movies []models.Movie
 	var total int64
 
 	offset := (page - 1) * pageSize
 
+	dbQuery := config.DB.Model(&models.Movie{})
+	if searchQuery != "" {
+		dbQuery = dbQuery.Where("title LIKE ? OR original_title LIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%")
+	}
+	// Order("release_year DESC")
+
 	// 获取总记录数
-	config.DB.Model(&models.Movie{}).Count(&total)
+	if err := dbQuery.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影总数失败"})
+		return
+	}
 
 	// 获取分页数据
-	result := config.DB.Offset(offset).Limit(pageSize).Find(&movies)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch movies"})
+	if err := dbQuery.Offset(offset).Limit(pageSize).Find(&movies).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影列表失败"})
 		return
+	}
+
+	// 计算总页数
+	totalPages := int64(0)
+	if total > 0 {
+		totalPages = (total + int64(pageSize) - 1) / int64(pageSize)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"page":        page,
 		"page_size":   pageSize,
 		"total":       total,
-		"total_pages": (total + int64(pageSize) - 1) / int64(pageSize),
+		"total_pages": totalPages,
 		"results":     movies,
 	})
 }
@@ -104,57 +133,6 @@ func DeleteMovie(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Movie deleted successfully"})
-}
-
-// SearchMovies 通过关键字搜索电影
-func SearchMovies(c *gin.Context) {
-	// 参数解析
-	keyword := c.Query("query")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize := 20
-
-	// 验证参数
-	if len(keyword) < 2 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "搜索关键字至少需要2个字符",
-		})
-		return
-	}
-
-	// 构造查询
-	query := config.DB.Model(&models.Movie{}).
-		Where("title LIKE ? OR description LIKE ?",
-			"%"+keyword+"%",
-			"%"+keyword+"%",
-		)
-
-	// 获取总数
-	var total int64
-	query.Count(&total)
-
-	// 分页查询
-	var movies []models.Movie
-	result := query.Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&movies)
-
-	// 错误处理
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "数据库查询失败",
-		})
-		return
-	}
-
-	// 返回结果
-	c.JSON(http.StatusOK, gin.H{
-		"data": movies,
-		"meta": gin.H{
-			"current_page": page,
-			"per_page":     pageSize,
-			"total":        total,
-		},
-	})
 }
 
 // GetAdminMovies 获取电影列表（管理后台）

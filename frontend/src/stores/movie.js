@@ -8,11 +8,7 @@ export const useMovieStore = defineStore('movie', () => {
     try {
       const response = await fetch(`/api/v1/frontend/movies?page=${page}&page_size=${pageSize}`)
       const data = await response.json()
-      if (page === 1) {
-        movies.value = data.results;
-      } else {
-        movies.value = [...movies.value, ...data.results];
-      }
+      movies.value = data.results;
       return data;
     } catch (error) {
       console.error('Failed to fetch movies:', error)
@@ -25,7 +21,7 @@ export const useMovieStore = defineStore('movie', () => {
   
   const searchMovies = async (query, page = 1, pageSize = 20) => {
     try {
-      const response = await fetch(`/api/v1/frontend/movies/search?query=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`)
+      const response = await fetch(`/api/v1/frontend/movies?query=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`)
       const data = await response.json()
       searchResults.value = data.results;
       searchTotalPages.value = data.total_pages;

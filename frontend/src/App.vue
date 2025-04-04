@@ -56,6 +56,7 @@ const handleSearch = async () => {
   if (searchQuery.value.trim()) {
     await movieStore.searchMovies(searchQuery.value)
     router.push({ path: '/search', query: { q: searchQuery.value } })
+    searchQuery.value = ''
   }
 }
 

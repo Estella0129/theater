@@ -25,14 +25,14 @@ func main() {
 			frontend.GET("/users/:id", handlers.GetUser)            // 获取用户详情
 
 			// 电影相关路由
-			frontend.GET("/movies", handlers.GetMovies)           // 获取电影列表
-			frontend.GET("/movies/:id", handlers.GetMovie)        // 获取单个电影详情
-			frontend.GET("/movies/search", handlers.SearchMovies) // 搜索电影
+			frontend.GET("/movies", handlers.GetMovies)    // 获取电影列表
+			frontend.GET("/movies/:id", handlers.GetMovie) // 获取单个电影详情
 		}
 
 		// 管理后台接口路由组
 		admin := v1.Group("/admin")
 		{
+			admin.Use()
 			// 用户管理路由
 			admin.POST("/users", handlers.CreateUser)       // 管理员创建用户
 			admin.GET("/users", handlers.GetUsers)          // 获取用户列表
@@ -40,11 +40,10 @@ func main() {
 			admin.DELETE("/users/:id", handlers.DeleteUser) // 删除用户
 
 			// 电影管理路由
-			admin.POST("/movies", handlers.CreateMovie)         // 创建电影
-			admin.GET("/movies", handlers.GetAdminMovies)       // 获取电影列表
-			admin.PUT("/movies/:id", handlers.UpdateMovie)      // 更新电影信息
-			admin.DELETE("/movies/:id", handlers.DeleteMovie)   // 删除电影
-			admin.GET("/movies/search?", handlers.SearchMovies) // 搜索电影
+			admin.POST("/movies", handlers.CreateMovie)       // 创建电影
+			admin.GET("/movies", handlers.GetAdminMovies)     // 获取电影列表
+			admin.PUT("/movies/:id", handlers.UpdateMovie)    // 更新电影信息
+			admin.DELETE("/movies/:id", handlers.DeleteMovie) // 删除电影
 		}
 	}
 

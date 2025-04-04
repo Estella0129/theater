@@ -13,7 +13,7 @@ type Movie struct {
 	OriginalTitle       string         `json:"original_title"`
 	OriginalLanguage    string         `json:"original_language"`
 	Overview            string         `json:"overview"`
-	PosterPath          string         `json:"poster_path"`
+	PosterPath          string         `json:"poster_path"` // 海报路径（需要拼接完整URL）
 	BackdropPath        string         `json:"backdrop_path"`
 	ReleaseDate         time.Time      `json:"release_date"`
 	Adult               bool           `json:"adult"`
@@ -64,4 +64,20 @@ type SpokenLanguage struct {
 	Iso6391     string `json:"iso_639_1"`
 	Name        string `json:"name"`
 	EnglishName string `json:"english_name"`
+}
+
+// SearchRequest 定义搜索请求的结构体
+type SearchRequest struct {
+	Query    string `form:"query"` // 搜索关键词
+	Page     int    `form:"page,default=1"`
+	Language string `form:"language,default=zh-CN"` // 语言
+
+}
+
+// 搜索响应结构
+type SearchResponse struct {
+	Page         int     `json:"page"`
+	Results      []Movie `json:"results"`
+	TotalPages   int     `json:"total_pages"`
+	TotalResults int     `json:"total_results"`
 }
