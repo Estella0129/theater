@@ -18,7 +18,14 @@ func InitDB() {
 	}
 
 	// 自动迁移数据库表结构
-	if err := db.AutoMigrate(&models.Movie{}, &models.User{}); err != nil {
+	if err := db.AutoMigrate(
+		&models.Movie{},
+		&models.User{},
+		&models.Genre{},
+		&models.Image{},
+		&models.People{},
+		&models.Credit{},
+	); err != nil {
 		fmt.Printf("Failed to auto migrate: %v\n", err)
 	}
 

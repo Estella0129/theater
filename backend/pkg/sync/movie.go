@@ -107,6 +107,8 @@ func SyncMovies() error {
 	// 使用收集到的所有结果进行处理
 	for _, tmdbMovie := range allResults {
 
+		fmt.Println("sync movie", tmdbMovie.ID, tmdbMovie.Title)
+
 		releaseDate, _ := time.Parse("2006-01-02", tmdbMovie.ReleaseDate)
 
 		movie := models.Movie{
@@ -127,9 +129,13 @@ func SyncMovies() error {
 
 		// 3. 使用GORM保存到SQLite
 		result := config.DB.FirstOrCreate(&movie)
+
 		if result.Error != nil {
 			return result.Error
 		}
+		_ = Images(tmdbMovie.ID)
+
+		_ = SyncPeople(tmdbMovie.ID)
 	}
 
 	return nil

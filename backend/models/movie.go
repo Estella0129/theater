@@ -36,6 +36,8 @@ type Movie struct {
 	Director            string         `json:"director"`
 	Cast                string         `json:"cast"`
 	Duration            int            `json:"duration"`
+
+	Images []Image `gorm:"many2many:movie_images;foreignKey:ID;joinForeignKey:MovieID;References:FilePath;joinReferences:ImageFilePath"`
 }
 
 type Collection struct {

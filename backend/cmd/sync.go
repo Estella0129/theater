@@ -31,6 +31,8 @@ to quickly create a Cobra application.`,
 		// 初始化数据库
 		config.InitDB()
 
+		_ = sync.Genre()
+
 		if *manual {
 			// 手动执行同步
 			if err := sync.SyncMovies(); err != nil {
