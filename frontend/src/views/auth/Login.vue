@@ -50,9 +50,14 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        await userStore.login(loginForm)
+        const loginData = await userStore.login(loginForm)
         ElMessage.success('登录成功')
-        router.push('/')
+        if (loginData.user.role == 'admin') {
+          router.push('/admin')
+        }else{ 
+          router.push('/')
+        }
+        
       } catch (error) {
         ElMessage.error(error.message || '登录失败')
       } finally {
