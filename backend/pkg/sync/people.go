@@ -130,7 +130,7 @@ type CreditResponse struct {
 
 func syncCredit(movieID int, id string, index int) (err error) {
 	var dbCredit models.Credit
-	config.DB.Where("id = ?", id).First(&dbCredit)
+	config.DB.Where("credit_id = ?", id).First(&dbCredit)
 
 	if dbCredit.ID != "" {
 		return
