@@ -3,11 +3,12 @@ package sync
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Estella0129/theater/backend/config"
-	"github.com/Estella0129/theater/backend/models"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
 )
 
 // SyncMovies 从TiDB同步电影信息并写入本地数据库
@@ -55,9 +56,25 @@ func SyncMovies() error {
 		req.Header.Add("Authorization", "Bearer "+token)
 
 		fmt.Println("request", url)
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return fmt.Errorf("请求失败: %v", err)
+		// 创建自定义HTTP客户端，设置超时
+		client := &http.Client{
+			Timeout: 30 * time.Second,
+		}
+
+		// 添加重试机制
+		maxRetries := 3
+		var res *http.Response
+		for i := 0; i < maxRetries; i++ {
+			res, err = client.Do(req)
+			if err == nil {
+				break
+			}
+			if i < maxRetries-1 {
+				// 等待一段时间后重试
+				time.Sleep(time.Duration(i+1) * time.Second)
+				continue
+			}
+			return fmt.Errorf("请求失败(尝试%d次): %v", maxRetries, err)
 		}
 		defer res.Body.Close()
 
@@ -125,6 +142,7 @@ func SyncMovies() error {
 			VoteAverage:      tmdbMovie.VoteAverage,
 			VoteCount:        tmdbMovie.VoteCount,
 			Video:            tmdbMovie.Video,
+			GenreIDs:         tmdbMovie.GenreIDs,
 		}
 
 		// 3. 使用GORM保存到SQLite
@@ -136,6 +154,18 @@ func SyncMovies() error {
 		_ = Images(tmdbMovie.ID)
 
 		_ = SyncPeople(tmdbMovie.ID)
+
+		// 同步电影类型关联关系
+		if len(tmdbMovie.GenreIDs) > 0 {
+			var genres []models.Genre
+			config.DB.Where("id IN ?", tmdbMovie.GenreIDs).Find(&genres)
+			if len(genres) > 0 {
+				err = config.DB.Model(&movie).Association("Genres").Replace(genres)
+				if err != nil {
+					return fmt.Errorf("更新电影类型关联失败: %v", err)
+				}
+			}
+		}
 	}
 
 	return nil

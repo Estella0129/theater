@@ -32,12 +32,13 @@ type Movie struct {
 	Runtime             int            `json:"runtime"`
 	Tagline             string         `json:"tagline"`
 	Status              string         `json:"status"`
-	GenreIDs            string         `json:"genre_ids" gorm:"type:text"`
+	GenreIDs            []int          `json:"genre_ids" gorm:"type:text"`
 	Director            string         `json:"director"`
 	Cast                string         `json:"cast"`
 	Duration            int            `json:"duration"`
 
 	Images []Image `gorm:"many2many:movie_images;foreignKey:ID;joinForeignKey:MovieID;References:FilePath;joinReferences:ImageFilePath"`
+	Genres []Genre `gorm:"many2many:movie_genres;foreignKey:ID;joinForeignKey:MovieID;References:ID;joinReferences:GenreID"`
 }
 
 type Collection struct {
@@ -45,6 +46,11 @@ type Collection struct {
 	Name         string `json:"name"`
 	PosterPath   string `json:"poster_path"`
 	BackdropPath string `json:"backdrop_path"`
+}
+
+type MovieGenre struct {
+	MovieID uint `gorm:"primaryKey;type:int;column:movie_id"`
+	GenreID uint `gorm:"primaryKey;type:int;column:genre_id"`
 }
 
 type ProductionCompany struct {

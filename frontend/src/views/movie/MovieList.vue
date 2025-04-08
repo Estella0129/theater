@@ -3,6 +3,17 @@
     <el-card class="movie-list-card">
       <template #header>
         <h2>电影列表</h2>
+        <div class="genre-tags">
+        类型：<el-tag
+        v-for="genre in genres"
+        :key="genre.id"
+        @click="handleGenreClick(genre)"
+        type="info"
+        class="genre-tag"
+        >
+        {{ genre.name }}
+        </el-tag>
+        </div>
       </template>
       
 
@@ -46,6 +57,7 @@ const movies = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const genres = ref([])
 
 const loadMovies = async () => {
   loading.value = true
@@ -61,10 +73,11 @@ const loadMovies = async () => {
 
 onMounted(async () => {
   await loadMovies()
-  
-  
+  await loadGenres()
 })
-
+const handleGenreClick = (genre) => {
+  router.push(`/movies?genre=${genre.name}`)
+}
 const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)
 }
@@ -73,6 +86,15 @@ const handlePageChange = (Page) => {
   currentPage.value = Page
   loadMovies()
 }
+
+const loadGenres = async () => {
+  try {
+    genres.value = await movieStore.fetchGenres()
+  } catch (error) {
+    console.error('Failed to load genres:', error)
+  }
+}
+
 </script>
 
 <style scoped>
@@ -83,5 +105,34 @@ const handlePageChange = (Page) => {
 .movie-list-card {
   max-width: 1200px;
   margin: 0 auto;
+}
+/* .genre-tags {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+} */
+
+.genre-tag {
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 5px;
+}
+
+.genre-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.genre-tags::after {
+  content: "";
+  flex: auto;
 }
 </style>

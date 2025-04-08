@@ -42,6 +42,7 @@ to quickly create a Cobra application.`,
 				// 电影相关路由
 				frontend.GET("/movies", handlers.GetMovies)    // 获取电影列表
 				frontend.GET("/movies/:id", handlers.GetMovie) // 获取单个电影详情
+				frontend.GET("/genres", handlers.GetGenres)    // 获取所有电影类型
 			}
 
 			// 管理后台接口路由组

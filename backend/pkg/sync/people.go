@@ -3,10 +3,11 @@ package sync
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Estella0129/theater/backend/config"
-	"github.com/Estella0129/theater/backend/models"
 	"io"
 	"net/http"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
 )
 
 // Cast 结构体对应TMDB API返回的演员数据
@@ -172,7 +173,7 @@ func syncPerson(id int) (err error) {
 	}
 	fmt.Println(fmt.Printf("syncPerson: %d\n", id))
 
-	url := fmt.Sprintf("https://api.themoviedb.org/3/person/%d?language=en-US", id)
+	url := fmt.Sprintf("https://api.themoviedb.org/3/person/%d?language=zh-CN", id)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
