@@ -24,10 +24,6 @@ func GetMovies(c *gin.Context) {
 	}
 
 	searchQuery := strings.TrimSpace(c.Query("query"))
-	if searchQuery == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "搜索词不能为空"})
-		return
-	}
 
 	var movies []models.Movie
 	var total int64

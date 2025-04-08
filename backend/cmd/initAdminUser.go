@@ -24,9 +24,13 @@ to quickly create a Cobra application.`,
 		config.InitDB()
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin1"), bcrypt.DefaultCost)
-		config.DB.FirstOrCreate(&models.User{
+		admin := &models.User{
 			Username: "admin", Password: string(hashedPassword), Email: "admin@cc.cc", Role: "admin",
-		})
+		}
+		config.DB.FirstOrCreate(admin)
+		admin.Password = string(hashedPassword)
+		admin.Role = "admin"
+		config.DB.Save(admin)
 	},
 }
 
