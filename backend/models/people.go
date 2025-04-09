@@ -24,9 +24,9 @@ type Credit struct {
 	Job        string `gorm:"type:varchar(255);column:job" json:"job"`
 	Order      int    `gorm:"type:int;column:order" json:"order"`
 
-	MovieID int   `gorm:"type:int;column:movie_id"`
-	Movie   Movie `gorm:"foreignKey:MovieID;references:ID"`
+	MovieID int    `gorm:"type:int;column:movie_id"`
+	Movie   *Movie `gorm:"foreignKey:MovieID;references:ID"`
 
-	PeopleID int    `gorm:"type:int;column:people_id"`
-	People   People `gorm:"foreignKey:PeopleID;references:ID"`
+	PeopleID int     `gorm:"type:int;column:people_id"`
+	People   *People `gorm:"foreignKey:PeopleID;references:ID"`
 }
