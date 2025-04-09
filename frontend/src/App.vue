@@ -6,6 +6,7 @@
           <div class="nav-left">
             <router-link to="/">首页</router-link>
             <router-link to="/movies">电影</router-link>
+            <router-link to="/people">人物</router-link>
           </div>
           <div class="nav-right">
             <el-input

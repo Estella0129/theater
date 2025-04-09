@@ -43,6 +43,10 @@ to quickly create a Cobra application.`,
 				frontend.GET("/movies", handlers.GetMovies)    // 获取电影列表
 				frontend.GET("/movies/:id", handlers.GetMovie) // 获取单个电影详情
 				frontend.GET("/genres", handlers.GetGenres)    // 获取所有电影类型
+
+				// 人物相关路由
+				frontend.GET("/peoples", handlers.GetPeoples)    // 获取人物列表
+				frontend.GET("/peoples/:id", handlers.GetPeople) // 获取单个人物详情
 			}
 
 			// 管理后台接口路由组
@@ -60,6 +64,12 @@ to quickly create a Cobra application.`,
 				admin.GET("/movies", handlers.GetAdminMovies)     // 获取电影列表
 				admin.PUT("/movies/:id", handlers.UpdateMovie)    // 更新电影信息
 				admin.DELETE("/movies/:id", handlers.DeleteMovie) // 删除电影
+
+				// 人物管理路由
+				admin.POST("/people", handlers.CreatePeople)       // 创建人物
+				admin.GET("/people", handlers.GetAdminPeople)      // 获取人物列表
+				admin.PUT("/people/:id", handlers.UpdatePeople)    // 更新人物信息
+				admin.DELETE("/people/:id", handlers.DeletePeople) // 删除人物
 			}
 		}
 

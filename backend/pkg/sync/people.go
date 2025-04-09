@@ -116,7 +116,7 @@ type CreditResponse struct {
 	} `json:"media"`
 	MediaType string `json:"media_type"`
 	ID        string `json:"id"`
-	Person    struct {
+	People    struct {
 		ID                 int         `json:"id"`
 		Name               string      `json:"name"`
 		OriginalName       string      `json:"original_name"`
@@ -126,7 +126,7 @@ type CreditResponse struct {
 		Gender             int         `json:"gender"`
 		KnownForDepartment string      `json:"known_for_department"`
 		ProfilePath        interface{} `json:"profile_path"`
-	} `json:"person"`
+	} `json:"People"`
 }
 
 func syncCredit(movieID int, id string, index int) (err error) {
@@ -144,7 +144,7 @@ func syncCredit(movieID int, id string, index int) (err error) {
 		return
 	}
 
-	err = syncPerson(response.Person.ID)
+	err = syncPeople(response.People.ID)
 	if err != nil {
 		return
 	}
@@ -155,7 +155,7 @@ func syncCredit(movieID int, id string, index int) (err error) {
 		CreditType: response.CreditType,
 		Department: response.Department,
 		Job:        response.Job,
-		PeopleID:   response.Person.ID,
+		PeopleID:   response.People.ID,
 		Order:      index,
 	}
 
@@ -163,17 +163,17 @@ func syncCredit(movieID int, id string, index int) (err error) {
 	return
 }
 
-func syncPerson(id int) (err error) {
+func syncPeople(id int) (err error) {
 
-	var person models.People
-	config.DB.Where("id = ?", id).First(&person)
+	var People models.People
+	config.DB.Where("id = ?", id).First(&People)
 
-	if person.ID != 0 {
+	if People.ID != 0 {
 		return
 	}
-	fmt.Println(fmt.Printf("syncPerson: %d\n", id))
+	fmt.Println(fmt.Printf("syncPeople: %d\n", id))
 
-	url := fmt.Sprintf("https://api.themoviedb.org/3/person/%d?language=zh-CN", id)
+	url := fmt.Sprintf("https://api.themoviedb.org/3/People/%d?language=zh-CN", id)
 
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -190,9 +190,9 @@ func syncPerson(id int) (err error) {
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
-	err = json.Unmarshal(body, &person)
+	err = json.Unmarshal(body, &People)
 
-	err = config.DB.Create(&person).Error
+	err = config.DB.Create(&People).Error
 
 	return
 }
