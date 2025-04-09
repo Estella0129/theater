@@ -8,7 +8,7 @@
         </div>
       </template>
       
-      <el-table :data="movies" style="width: 100%">
+      <el-table :data="movieStore.movies" style="width: 100%">
         <el-table-column prop="title" label="电影名称" width="180" />
         <el-table-column prop="director" label="导演" width="180" />
         <el-table-column prop="releaseDate" label="上映日期" />
@@ -30,7 +30,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useMovieStore } from '../stores/movie'
+import { useMovieStore } from '../../../stores/movie'
 
 const movieStore = useMovieStore()
 const movies = ref([])
