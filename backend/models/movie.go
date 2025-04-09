@@ -32,7 +32,6 @@ type Movie struct {
 	Runtime             int            `json:"runtime"`
 	Tagline             string         `json:"tagline"`
 	Status              string         `json:"status"`
-	GenreIDs            []int          `json:"genre_ids" gorm:"type:text"`
 	Director            string         `json:"director"`
 	Cast                string         `json:"cast"`
 	Duration            int            `json:"duration"`

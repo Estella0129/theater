@@ -48,21 +48,29 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useMovieStore } from '../../stores/movie'
 
+const route = useRoute()
 const router = useRouter()
 const movieStore = useMovieStore()
 const movies = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const queryGenre = ref(1)
 const genres = ref([])
+const pageSize = ref(20)
 
 const loadMovies = async () => {
   loading.value = true
   try {
-    const data = await movieStore.fetchMovies(currentPage.value, 20)
+    const query = {
+      page: currentPage.value,
+      pageSize: pageSize.value,
+      genre: queryGenre.value
+    }
+    const data = await movieStore.fetchMovies(query)
     totalPages.value = data.total_pages
     currentPage.value = data.page
     movies.value = data.results
@@ -72,11 +80,16 @@ const loadMovies = async () => {
 }
 
 onMounted(async () => {
+  currentPage.value = parseInt(route.query.page) || 1
+  pageSize.value = parseInt(route.query.pageSize) || 20
+  queryGenre.value = route.query.genre || 1
   await loadMovies()
   await loadGenres()
 })
 const handleGenreClick = (genre) => {
-  router.push(`/movies?genre=${genre.name}`)
+  router.push(`/movies?genre=${genre.id}`)
+  queryGenre.value = genre.id
+  loadMovies()
 }
 const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)

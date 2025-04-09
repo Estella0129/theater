@@ -7,12 +7,13 @@ import (
 	"github.com/Estella0129/theater/backend/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
 
 func InitDB() {
-	db, err := gorm.Open(sqlite.Open("theater.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("theater.db"), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -22,6 +23,7 @@ func InitDB() {
 		&models.Movie{},
 		&models.User{},
 		&models.Genre{},
+		&models.MovieGenre{},
 		&models.Image{},
 		&models.People{},
 		&models.Credit{},

@@ -3,10 +3,10 @@ import { ref } from 'vue'
 
 export const useMovieStore = defineStore('movie', () => {
   const movies = ref([])
-  
-  const fetchMovies = async (page = 1, pageSize = 20) => {
+
+  const fetchMovies = async (query = { page: 1, pageSize: 20, genre: '' }) => {
     try {
-      const response = await fetch(`/api/v1/frontend/movies?page=${page}&page_size=${pageSize}`)
+      const response = await fetch(`/api/v1/frontend/movies?page=${query.page}&page_size=${query.pageSize}&genre=${query.genre}`)
       const data = await response.json()
       movies.value = data.results;
       return data;

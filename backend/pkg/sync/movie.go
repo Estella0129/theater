@@ -142,18 +142,23 @@ func SyncMovies() error {
 			VoteAverage:      tmdbMovie.VoteAverage,
 			VoteCount:        tmdbMovie.VoteCount,
 			Video:            tmdbMovie.Video,
-			GenreIDs:         tmdbMovie.GenreIDs,
+			//GenreIDs:         tmdbMovie.GenreIDs,
 		}
 
 		// 3. 使用GORM保存到SQLite
 		result := config.DB.FirstOrCreate(&movie)
 
+		for _, generID := range tmdbMovie.GenreIDs {
+			relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(generID)}
+			config.DB.Create(&relation)
+		}
+
 		if result.Error != nil {
 			return result.Error
 		}
-		_ = Images(tmdbMovie.ID)
+		//_ = Images(tmdbMovie.ID)
 
-		_ = SyncPeople(tmdbMovie.ID)
+		//_ = SyncPeople(tmdbMovie.ID)
 
 		// 同步电影类型关联关系
 		if len(tmdbMovie.GenreIDs) > 0 {

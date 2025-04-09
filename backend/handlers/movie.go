@@ -24,6 +24,7 @@ func GetMovies(c *gin.Context) {
 	}
 
 	searchQuery := strings.TrimSpace(c.Query("query"))
+	genre := strings.TrimSpace(c.Query("genre"))
 
 	var movies []models.Movie
 	var total int64
@@ -34,7 +35,12 @@ func GetMovies(c *gin.Context) {
 	if searchQuery != "" {
 		dbQuery = dbQuery.Where("title LIKE ? OR original_title LIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%")
 	}
-	// Order("release_year DESC")
+	if genre != "" {
+		dbQuery = dbQuery.Joins(
+			"left JOIN movie_genres ON movies.id = movie_genres.movie_id",
+			genre,
+		).Where("movie_genres.genre_id = ?", genre)
+	}
 
 	// 获取总记录数
 	if err := dbQuery.Count(&total).Error; err != nil {
