@@ -20,7 +20,8 @@ func SyncMovies() error {
 	// 分页获取所有电影数据
 	page := 1
 	totalPages := 1
-	var allResults []struct {
+
+	type TmdbMovie struct {
 		ID               int     `json:"id"`
 		Title            string  `json:"title"`
 		OriginalTitle    string  `json:"original_title"`
@@ -36,6 +37,7 @@ func SyncMovies() error {
 		Video            bool    `json:"video"`
 		GenreIDs         []int   `json:"genre_ids"`
 	}
+	var allResults []TmdbMovie
 
 	for page <= totalPages {
 		// 添加适当的延迟避免API限流
@@ -91,22 +93,7 @@ func SyncMovies() error {
 			Page         int `json:"page"`
 			TotalPages   int `json:"total_pages"`
 			TotalResults int `json:"total_results"`
-			Results      []struct {
-				ID               int     `json:"id"`
-				Title            string  `json:"title"`
-				OriginalTitle    string  `json:"original_title"`
-				OriginalLanguage string  `json:"original_language"`
-				Overview         string  `json:"overview"`
-				PosterPath       string  `json:"poster_path"`
-				BackdropPath     string  `json:"backdrop_path"`
-				ReleaseDate      string  `json:"release_date"`
-				Adult            bool    `json:"adult"`
-				Popularity       float64 `json:"popularity"`
-				VoteAverage      float64 `json:"vote_average"`
-				VoteCount        int     `json:"vote_count"`
-				Video            bool    `json:"video"`
-				GenreIDs         []int   `json:"genre_ids"`
-			}
+			Results      []TmdbMovie
 		}
 
 		if err := json.Unmarshal(body, &tmdbResponse); err != nil {
