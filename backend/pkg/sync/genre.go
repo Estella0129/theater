@@ -3,10 +3,11 @@ package sync
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Estella0129/theater/backend/config"
-	"github.com/Estella0129/theater/backend/models"
 	"io"
 	"net/http"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
 )
 
 func Genre() (err error) {
@@ -22,10 +23,20 @@ func Genre() (err error) {
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	res, _ := http.DefaultClient.Do(req)
-
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("HTTP请求失败: %v", err)
+	}
 	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body)
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("API返回错误状态码: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("读取响应体失败: %v", err)
+	}
 
 	type genreResponse struct {
 		Genres []models.Genre `json:"genres"`

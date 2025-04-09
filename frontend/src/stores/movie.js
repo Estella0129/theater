@@ -42,6 +42,31 @@ export const useMovieStore = defineStore('movie', () => {
       throw error
     }
   }
+const genres = ref([])
 
-  return { movies, fetchMovies, searchMovies, searchResults, searchTotalPages, getMovieById }
+const fetchGenres = async () => {
+  try {
+    const response = await fetch(`/api/v1/frontend/genres`)
+    const data = await response.json()
+    genres.value = data
+    console.log(data)
+    return data
+    
+  } catch (error) {
+    console.error('Failed to fetch genre:', error)
+    throw error
+  }
+}
+const getGenreById = async (id) => {
+  try {
+    const response = await fetch(`/api/v1/frontend/genres/${id}`)
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Failed to fetch genre:', error)
+    throw error
+  }
+}
+
+  return { movies, fetchMovies, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres,getGenreById  }
 })
