@@ -10,7 +10,7 @@
         <div class="People-meta" v-if="People.gender || People.birthday || People.place_of_birth">
           <span v-if="People.gender === 1">女</span>
           <span v-else-if="People.gender === 2">男</span>
-          <span v-if="People.birthday">{{ People.birthday }}</span>
+          <span v-if="People.birthday">{{ formatDate(People.birthday) }}</span>
           <span v-if="People.place_of_birth">{{ People.place_of_birth }}</span>
         </div>
         <p class="People-bio" v-if="People.biography">{{ People.biography }}</p>
@@ -69,6 +69,10 @@ export default {
     },
     getPosterImage(path) {
       return path ? `https://image.tmdb.org/t/p/w185${path}` : '/placeholder-poster.png'
+    },
+    formatDate(dateString) {
+      if (!dateString) return '';
+      return dateString.split('T')[0];
     },
     openImage(path) {
       // 打开大图预览
