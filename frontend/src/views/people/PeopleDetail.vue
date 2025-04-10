@@ -5,15 +5,15 @@
         <img :src="getProfileImage(People.profile_path)" alt="People poster" />
       </div>
       <div class="People-info">
-        <h1>{{ People.name }}</h1>
-        <h2 v-if="People.original_name !== People.name">{{ People.original_name }}</h2>
-        <div class="People-meta">
+        <h1 v-if="People.name">{{ People.name }}</h1>
+        <h2 v-if="People.original_name && People.original_name !== People.name">{{ People.original_name }}</h2>
+        <div class="People-meta" v-if="People.gender || People.birthday || People.place_of_birth">
           <span v-if="People.gender === 1">女</span>
           <span v-else-if="People.gender === 2">男</span>
           <span v-if="People.birthday">{{ People.birthday }}</span>
           <span v-if="People.place_of_birth">{{ People.place_of_birth }}</span>
         </div>
-        <p class="People-bio">{{ People.biography }}</p>
+        <p class="People-bio" v-if="People.biography">{{ People.biography }}</p>
       </div>
     </div>
 
@@ -51,13 +51,16 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'PeopleDetail',
   data() {
     return {
       People: {},
       credits: [],
-      images: []
+      images: [],
+      $http: axios
     }
   },
   methods: {
@@ -75,15 +78,15 @@ export default {
     const PeopleId = this.$route.params.id;
     try {
       // 获取人物详情
-      const PeopleResponse = await this.$http.get(`/api/People/${PeopleId}`);
+      const PeopleResponse = await axios.get(`/api/Peoples/${PeopleId}`);
       this.People = PeopleResponse.data;
       
       // 获取参演作品
-      const creditsResponse = await this.$http.get(`/api/People/${PeopleId}/credits`);
+      const creditsResponse = await axios.get(`/api/Peoples/${PeopleId}/credits`);
       this.credits = creditsResponse.data;
       
       // 获取人物图片
-      const imagesResponse = await this.$http.get(`/api/People/${PeopleId}/images`);
+      const imagesResponse = await axios.get(`/api/Peoples/${PeopleId}/images`);
       this.images = imagesResponse.data;
     } catch (error) {
       console.error('获取数据失败:', error);

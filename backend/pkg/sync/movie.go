@@ -135,8 +135,8 @@ func SyncMovies() error {
 		// 3. 使用GORM保存到SQLite
 		result := config.DB.FirstOrCreate(&movie)
 
-		for _, generID := range tmdbMovie.GenreIDs {
-			relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(generID)}
+		for _, genreID := range tmdbMovie.GenreIDs {
+			relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(genreID)}
 			config.DB.Create(&relation)
 		}
 

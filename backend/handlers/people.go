@@ -50,7 +50,6 @@ func GetPeoples(c *gin.Context) {
 	// 计算总页数
 	totalPages := int64(0)
 	if total > 0 {
-
 		totalPages = (total + int64(pageSize) - 1) / int64(pageSize)
 	}
 

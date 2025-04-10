@@ -6,7 +6,7 @@
         :key="People.id" 
         :xs="12" :sm="8" :md="6" :lg="6" :xl="6"
       >
-        <el-card class="People-card" shadow="hover">
+        <el-card class="People-card" shadow="hover" @click="handleDetail(People)">
           <div class="People-poster">
             <img :src="getProfileImage(People.profile_path)" alt="People poster" />
           </div>
@@ -33,10 +33,12 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import { usePeopleStore } from '../../stores/people';
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
     const PeopleStore = usePeopleStore();
+    const router = useRouter();
     const currentPage = ref(1);
     const pageSize = 20;
 
@@ -48,8 +50,13 @@ export default {
       return PeopleStore.Peoples.slice(start, end);
     });
 
-    const handlePageChange = (page) => {
+    const handleDetail = (People) => {
+      router.push(`/people/${People.id}`)
+    }
+
+    const handlePageChange = async (page) => {
       currentPage.value = page;
+      await PeopleStore.fetchPeoples(page, pageSize);
     };
 
     const getProfileImage = (path) => {
@@ -68,7 +75,8 @@ export default {
       totalPeoples,
       displayedPeoples,
       handlePageChange,
-      getProfileImage
+      getProfileImage,
+      handleDetail
     };
   }
 };
@@ -80,7 +88,7 @@ export default {
 }
 
 .People-card {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   cursor: pointer;
   transition: transform 0.3s;
 }

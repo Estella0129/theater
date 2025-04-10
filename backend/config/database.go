@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/Estella0129/theater/backend/models"
@@ -19,6 +18,7 @@ func InitDB() {
 	}
 
 	// 自动迁移数据库表结构
+	log.Println("开始自动迁移数据库表结构...")
 	if err := db.AutoMigrate(
 		&models.Movie{},
 		&models.User{},
@@ -28,7 +28,9 @@ func InitDB() {
 		&models.People{},
 		&models.Credit{},
 	); err != nil {
-		fmt.Printf("Failed to auto migrate: %v\n", err)
+		log.Printf("自动迁移失败: %v\n", err)
+	} else {
+		log.Println("数据库表结构迁移成功")
 	}
 
 	DB = db
