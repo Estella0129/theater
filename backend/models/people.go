@@ -15,6 +15,8 @@ type People struct {
 	Deathday           string  `gorm:"type:date;column:deathday" json:"deathday"`
 	Homepage           string  `gorm:"type:varchar(255);column:homepage" json:"homepage"`
 	PlaceOfBirth       string  `gorm:"type:varchar(255);column:place_of_birth" json:"place_of_birth"`
+
+	Credits []Credit `gorm:"foreignKey:PeopleID;references:ID"`
 }
 
 type Credit struct {

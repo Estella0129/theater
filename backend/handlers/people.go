@@ -67,7 +67,7 @@ func GetPeople(c *gin.Context) {
 	id := c.Param("id")
 
 	var People models.People
-	result := config.DB.First(&People, id)
+	result := config.DB.Preload("Credits").Preload("Credits.Movie").First(&People, id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "People not found"})
 		return

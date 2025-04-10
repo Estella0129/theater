@@ -21,13 +21,13 @@
       <section class="People-credits">
         <h3>参演作品</h3>
         <div class="credit-list">
-          <div v-for="credit in credits" :key="credit.id" class="credit-item">
-            <router-link :to="`/movie/${credit.movie_id}`">
-              <img :src="getPosterImage(credit.movie.poster_path)" alt="Movie poster" />
+          <div v-for="credit in credits" :key="credit.credit_id" class="credit-item">
+            <router-link :to="`/movie/${credit.MovieID}`">
+              <img :src="getPosterImage(credit.Movie.poster_path)" alt="Movie poster" />
               <div class="credit-info">
-                <h4>{{ credit.movie.title }}</h4>
+                <h4>{{ credit.Movie.title }}</h4>
                 <p>{{ credit.character || credit.job }}</p>
-                <p>{{ credit.movie.release_date }}</p>
+                <p>{{ credit.Movie.release_date }}</p>
               </div>
             </router-link>
           </div>
@@ -78,16 +78,11 @@ export default {
     const PeopleId = this.$route.params.id;
     try {
       // 获取人物详情
-      const PeopleResponse = await axios.get(`/api/Peoples/${PeopleId}`);
+      const PeopleResponse = await axios.get(`/api/v1/frontend/peoples/${PeopleId}`);
       this.People = PeopleResponse.data;
       
-      // 获取参演作品
-      const creditsResponse = await axios.get(`/api/Peoples/${PeopleId}/credits`);
-      this.credits = creditsResponse.data;
+      this.credits = PeopleResponse.data.Credits
       
-      // 获取人物图片
-      const imagesResponse = await axios.get(`/api/Peoples/${PeopleId}/images`);
-      this.images = imagesResponse.data;
     } catch (error) {
       console.error('获取数据失败:', error);
     }
