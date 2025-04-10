@@ -82,7 +82,7 @@ const loadMovies = async () => {
 onMounted(async () => {
   currentPage.value = parseInt(route.query.page) || 1
   pageSize.value = parseInt(route.query.pageSize) || 20
-  queryGenre.value = route.query.genre || 1
+  queryGenre.value = route.query.genre || ''
   await loadMovies()
   await loadGenres()
 })
