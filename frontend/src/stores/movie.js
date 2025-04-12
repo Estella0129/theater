@@ -43,6 +43,8 @@ export const useMovieStore = defineStore('movie', () => {
       data.director = director && director.People ? director.People.name : ""
       data.cast = cast && cast.People ? cast.People.name : ""
 
+      data.rating = data.vote_average/2;
+
       return data
     } catch (error) {
       console.error('Failed to fetch movie:', error)
