@@ -25,12 +25,37 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="50%">
+      <el-form :model="form" label-width="120px">
+        <el-form-item label="电影名称" prop="title">
+          <el-input v-model="form.title" />
+        </el-form-item>
+        <el-form-item label="导演" prop="director">
+          <el-input v-model="form.director" />
+        </el-form-item>
+        <el-form-item label="上映日期" prop="releaseDate">
+          <el-date-picker v-model="form.releaseDate" type="date" />
+        </el-form-item>
+        <el-form-item label="评分" prop="rating">
+          <el-rate v-model="form.rating" />
+        </el-form-item>
+        <el-form-item label="简介" prop="description">
+          <el-input v-model="form.description" type="textarea" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">确认</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useMovieStore } from '../../../stores/movie'
+import { ElMessage } from 'element-plus'
 
 const movieStore = useMovieStore()
 const movies = ref([])
@@ -39,16 +64,57 @@ onMounted(async () => {
   movies.value = await movieStore.fetchMovies()
 })
 
+const dialogVisible = ref(false)
+const dialogTitle = ref('')
+const form = ref({
+  title: '',
+  director: '',
+  releaseDate: '',
+  rating: 0,
+  description: ''
+})
+
 const handleCreate = () => {
-  // TODO: Implement create movie logic
+  dialogTitle.value = '添加电影'
+  form.value = {
+    title: '',
+    director: '',
+    releaseDate: '',
+    rating: 0,
+    description: ''
+  }
+  dialogVisible.value = true
 }
 
 const handleEdit = (movie) => {
-  // TODO: Implement edit movie logic
+  dialogTitle.value = '编辑电影'
+  form.value = {
+    title: movie.title,
+    director: movie.director,
+    releaseDate: movie.releaseDate,
+    rating: movie.rating,
+    description: movie.description || ''
+  }
+  dialogVisible.value = true
 }
 
 const handleDelete = (movie) => {
   // TODO: Implement delete movie logic
+}
+
+const submitForm = async () => {
+  try {
+    if (dialogTitle.value === '添加电影') {
+      await movieStore.createMovie(form.value)
+    } else {
+      await movieStore.updateMovie(form.value)
+    }
+    dialogVisible.value = false
+    await movieStore.fetchMovies()
+    ElMessage.success('操作成功')
+  } catch (error) {
+    ElMessage.error('操作失败: ' + error.message)
+  }
 }
 </script>
 
