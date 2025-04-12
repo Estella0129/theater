@@ -2,10 +2,21 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    user: null,
-    token: null
-  }),
+  state: () => {
+    // 从localStorage初始化用户状态
+    const token = localStorage.getItem('token')
+    const user = JSON.parse(localStorage.getItem('user'))
+    
+    // 设置axios默认请求头
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    }
+    
+    return {
+      user,
+      token
+    }
+  },
 
   getters: {
     isLoggedIn: (state) => !!state.user,
@@ -30,6 +41,15 @@ export const useUserStore = defineStore('user', {
         // 设置请求头的认证信息
         if (this.token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+          // 设置cookie，确保保存完整的用户信息
+          const userData = {
+            id: this.user.id,
+            name: this.user.name,
+            email: this.user.email,
+            role: this.user.role
+          }
+          localStorage.setItem('token', this.token)
+          localStorage.setItem('user', JSON.stringify(userData))
         }
         return response.data
       } catch (error) {
@@ -41,6 +61,9 @@ export const useUserStore = defineStore('user', {
       this.user = null
       this.token = null
       delete axios.defaults.headers.common['Authorization']
+      // 清除localStorage
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
     },
 
     async updateUser(userId, userData) {

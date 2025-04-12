@@ -18,6 +18,10 @@
             <el-icon><film /></el-icon>
             <span>电影管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/people">
+            <el-icon><user /></el-icon>
+            <span>人员管理</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       <el-container>

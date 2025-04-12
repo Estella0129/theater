@@ -134,17 +134,23 @@ func DeletePeople(c *gin.Context) {
 func GetAdminPeople(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	searchQuery := c.Query("search")
 
 	var people []models.People
 	var total int64
 
 	offset := (page - 1) * pageSize
 
+	db := config.DB
+	if searchQuery != "" {
+		db = db.Where("name LIKE ?", "%"+searchQuery+"%")
+	}
+
 	// 获取总记录数
-	config.DB.Model(&models.People{}).Count(&total)
+	db.Model(&models.People{}).Count(&total)
 
 	// 获取分页数据
-	result := config.DB.Offset(offset).Limit(pageSize).Find(&people)
+	result := db.Offset(offset).Limit(pageSize).Find(&people)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch people"})
 		return

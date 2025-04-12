@@ -1,0 +1,151 @@
+<template>
+  <div class="people-list">
+    <el-card>
+      <div class="header">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索姓名"
+          style="width: 300px"
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        />
+        <el-button type="primary" @click="handleAdd">添加人员</el-button>
+      </div>
+
+      <el-table :data="filteredPeoples" style="width: 100%" border>
+        <el-table-column prop="name" label="姓名" width="120" />
+        <el-table-column prop="original_name" label="原名" width="120" />
+        <el-table-column prop="role" label="角色" width="100">
+          <template #default="scope">
+            {{ formatRole(scope.row.role) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="gender" label="性别" width="80">
+          <template #default="scope">
+            {{ formatGender(scope.row.gender) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="birthday" label="出生日期" width="120" />
+        <el-table-column prop="place_of_birth" label="出生地" width="120" />
+        <el-table-column label="操作" width="180">
+          <template #default="scope">
+            <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, prev, pager, next"
+        :total="total"
+        @current-change="fetchData"
+      />
+    </el-card>
+
+    <PeopleForm ref="peopleFormRef" @refresh="fetchData" />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { usePeopleStore } from '../../../stores/people';
+import PeopleForm from './PeopleForm.vue';
+
+const router = useRouter();
+
+const peopleStore = usePeopleStore();
+const peopleFormRef = ref(null);
+
+const currentPage = ref(1);
+const pageSize = 20;
+const total = ref(0);
+const searchQuery = ref('');
+
+const fetchData = async () => {
+  try {
+    const data = await peopleStore.fetchPeoples(currentPage.value, pageSize.value, searchQuery.value);
+    total.value = data.total;
+    // 更新URL参数
+    router.push({
+      query: {
+        ...router.currentRoute.value.query,
+        page: currentPage.value,
+        search: searchQuery.value
+      }
+    });
+  } catch (error) {
+    console.error('获取人员列表失败:', error);
+  }
+};
+
+const filteredPeoples = computed(() => {
+  return peopleStore.Peoples;
+});
+
+const handleSearch = () => {
+  currentPage.value = 1;
+  fetchData();
+};
+
+const handleAdd = () => {
+  peopleFormRef.value.open('添加人员');
+};
+
+const handleEdit = (row) => {
+  peopleFormRef.value.open('编辑人员', true, row);
+};
+
+const handleDelete = async (row) => {
+  try {
+    await peopleStore.deletePeople(row.id);
+    await fetchData();
+  } catch (error) {
+    console.error('删除失败:', error);
+  }
+};
+
+const formatRole = (role) => {
+  const roles = {
+    actor: '演员',
+    director: '导演',
+    writer: '编剧'
+  };
+  return roles[role] || role;
+};
+
+const formatGender = (gender) => {
+  const genders = {
+    0: '未知',
+    1: '女',
+    2: '男'
+  };
+  return genders[gender] || '未知';
+};
+
+onMounted(() => {
+  // 从URL参数初始化搜索条件
+  const route = router.currentRoute.value;
+  if (route.query.search) {
+    searchQuery.value = route.query.search;
+  }
+  if (route.query.page) {
+    currentPage.value = parseInt(route.query.page);
+  }
+  fetchData();
+});
+</script>
+
+<style scoped>
+.people-list {
+  padding: 20px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+</style>
