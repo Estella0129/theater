@@ -11,6 +11,25 @@ import (
 	"github.com/Estella0129/theater/backend/models"
 )
 
+type TmdbMovie struct {
+	ID               int     `json:"id"`
+	Title            string  `json:"title"`
+	OriginalTitle    string  `json:"original_title"`
+	OriginalLanguage string  `json:"original_language"`
+	Overview         string  `json:"overview"`
+	PosterPath       string  `json:"poster_path"`
+	BackdropPath     string  `json:"backdrop_path"`
+	ReleaseDate      string  `json:"release_date"`
+	Adult            bool    `json:"adult"`
+	Popularity       float64 `json:"popularity"`
+	VoteAverage      float64 `json:"vote_average"`
+	VoteCount        int     `json:"vote_count"`
+	Video            bool    `json:"video"`
+	GenreIDs         []int   `json:"genre_ids"`
+
+	Runtime int `json:"runtime"`
+}
+
 // SyncMovies 从TiDB同步电影信息并写入本地数据库
 func SyncMovies() error {
 	// 1. 从TMDB API获取电影数据
@@ -21,22 +40,6 @@ func SyncMovies() error {
 	page := 1
 	totalPages := 1
 
-	type TmdbMovie struct {
-		ID               int     `json:"id"`
-		Title            string  `json:"title"`
-		OriginalTitle    string  `json:"original_title"`
-		OriginalLanguage string  `json:"original_language"`
-		Overview         string  `json:"overview"`
-		PosterPath       string  `json:"poster_path"`
-		BackdropPath     string  `json:"backdrop_path"`
-		ReleaseDate      string  `json:"release_date"`
-		Adult            bool    `json:"adult"`
-		Popularity       float64 `json:"popularity"`
-		VoteAverage      float64 `json:"vote_average"`
-		VoteCount        int     `json:"vote_count"`
-		Video            bool    `json:"video"`
-		GenreIDs         []int   `json:"genre_ids"`
-	}
 	var allResults []TmdbMovie
 
 	for page <= totalPages {
@@ -134,6 +137,11 @@ func SyncMovies() error {
 
 		// 3. 使用GORM保存到SQLite
 		result := config.DB.FirstOrCreate(&movie)
+		if movie.Runtime == 0 {
+			movieDetail, _ := GetMovieDetail(tmdbMovie.ID)
+			movie.Runtime = movieDetail.Runtime
+			result = config.DB.Save(&movie)
+		}
 
 		for _, genreID := range tmdbMovie.GenreIDs {
 			relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(genreID)}
@@ -161,4 +169,24 @@ func SyncMovies() error {
 	}
 
 	return nil
+}
+
+func GetMovieDetail(movieID int) (*TmdbMovie, error) {
+	url := "https://api.themoviedb.org/3/movie/2?language=zh-CN"
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhOTJhNGExZGU1ZTIzMDRhYmI2MmZmMzYyY2Y1ZDU5NCIsIm5iZiI6MTcyNzQxOTQwMS42MjcsInN1YiI6IjY2ZjY1NDA5YWE3ZTVmYTIwMjk2NWE5ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-4QadlPUlI8Kmf4ed9_jVPU3KClZBSkeWGnXcg77otE")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+	var movie TmdbMovie
+	err := json.Unmarshal(body, &movie)
+	if err != nil {
+		return nil, err
+	}
+	return &movie, nil
 }
