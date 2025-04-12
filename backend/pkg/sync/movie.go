@@ -177,14 +177,19 @@ func GetMovieDetail(movieID int) (*TmdbMovie, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 
 	req.Header.Add("accept", "application/json")
-	req.Header.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhOTJhNGExZGU1ZTIzMDRhYmI2MmZmMzYyY2Y1ZDU5NCIsIm5iZiI6MTcyNzQxOTQwMS42MjcsInN1YiI6IjY2ZjY1NDA5YWE3ZTVmYTIwMjk2NWE5ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.-4QadlPUlI8Kmf4ed9_jVPU3KClZBSkeWGnXcg77otE")
+
+	token, err := config.GetTMDBToken()
+	if err != nil {
+		return nil, fmt.Errorf("获取TMDB Token失败: %v", err)
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 	var movie TmdbMovie
-	err := json.Unmarshal(body, &movie)
+	err = json.Unmarshal(body, &movie)
 	if err != nil {
 		return nil, err
 	}
