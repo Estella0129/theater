@@ -36,6 +36,13 @@ export const useMovieStore = defineStore('movie', () => {
     try {
       const response = await fetch(`/api/v1/frontend/movies/${id}`)
       const data = await response.json()
+
+      const director = data.Credits.find(c => c.credit_type == "crew" && c.order == 0)
+      const cast = data.Credits.find(c => c.credit_type == "cast" && c.order == 0)
+
+      data.director = director && director.People ? director.People.name : ""
+      data.cast = cast && cast.People ? cast.People.name : ""
+
       return data
     } catch (error) {
       console.error('Failed to fetch movie:', error)

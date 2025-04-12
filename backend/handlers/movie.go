@@ -74,7 +74,7 @@ func GetMovie(c *gin.Context) {
 	id := c.Param("id")
 
 	var movie models.Movie
-	result := config.DB.Preload("Credits").First(&movie, id)
+	result := config.DB.Preload("Credits").Preload("Credits.People").First(&movie, id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
 		return

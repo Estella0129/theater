@@ -4,20 +4,22 @@
       <template #header>
         <h2>{{ movie.title }}</h2>
       </template>
-      
+
       <div class="movie-info">
         <el-image :src="movie.poster" fit="cover" class="movie-poster"></el-image>
-        
+
         <div class="movie-meta">
           <p><strong>导演:</strong> {{ movie.director }}</p>
           <p><strong>主演:</strong> {{ movie.cast }}</p>
-          <p><strong>时长:</strong> {{ movie.runtime >= 60 ? Math.floor(movie.runtime / 60) + '小时' + (movie.runtime % 60) + '分钟' : movie.runtime + '分钟' }}</p>
+          <p><strong>时长:</strong> {{ movie.runtime >= 60 ? Math.floor(movie.runtime / 60) + '小时' + (movie.runtime % 60)
+            + '分钟'
+            : movie.runtime + '分钟' }}</p>
           <p><strong>评分:</strong> <el-rate v-model="movie.rating" disabled></el-rate></p>
           <p><strong>上映日期:</strong> {{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
           <p><strong>简介:</strong> {{ movie.overview }}</p>
         </div>
       </div>
-      
+
       <div class="movie-actions">
         <el-button type="primary" @click="goBack">返回列表</el-button>
       </div>
