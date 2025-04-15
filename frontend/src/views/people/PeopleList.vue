@@ -79,6 +79,7 @@ export default {
       currentPage,
       pageSize,
       totalPeoples,
+      totalPages,
       displayedPeoples,
       handlePageChange,
       getProfileImage,

@@ -8,7 +8,17 @@ export const useMovieStore = defineStore('movie', () => {
     try {
       const response = await fetch(`/api/v1/frontend/movies?page=${query.page}&page_size=${query.pageSize}&genre=${query.genre}`)
       const data = await response.json()
-      movies.value = data.results;
+      console.log('原始电影数据:', data.results);
+      movies.value = data.results.map(movie => {
+        const director = movie.Credits?.find(c => c.credit_type === "crew" && c.job === "Director");
+        console.log('电影ID:', movie.id, '导演信息:', director);
+        return {
+          ...movie,
+          releaseDate: movie.release_date,
+          rating: movie.vote_average / 2,
+          director: director && director.People ? director.People.name : "暂无导演信息"
+        };
+      });
       return data;
     } catch (error) {
       console.error('Failed to fetch movies:', error)

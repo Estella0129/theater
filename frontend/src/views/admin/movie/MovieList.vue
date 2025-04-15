@@ -11,7 +11,11 @@
       <el-table :data="movieStore.movies" style="width: 100%">
         <el-table-column prop="title" label="电影名称" width="180" />
         <el-table-column prop="director" label="导演" width="180" />
-        <el-table-column prop="releaseDate" label="上映日期" />
+        <el-table-column prop="release_date" label="上映日期">
+          <template #default="scope">
+            {{ formatDate(scope.row.release_date) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="rating" label="评分">
           <template #default="scope">
             <el-rate v-model="scope.row.rating" disabled></el-rate>
@@ -34,8 +38,8 @@
         <el-form-item label="导演" prop="director">
           <el-input v-model="form.director" />
         </el-form-item>
-        <el-form-item label="上映日期" prop="releaseDate">
-          <el-date-picker v-model="form.releaseDate" type="date" />
+        <el-form-item label="上映日期" prop="release_date">
+          <el-date-picker v-model="form.release_date" type="date" />
         </el-form-item>
         <el-form-item label="评分" prop="rating">
           <el-rate v-model="form.rating" />
@@ -61,7 +65,7 @@ const movieStore = useMovieStore()
 const movies = ref([])
 
 onMounted(async () => {
-  movies.value = await movieStore.fetchMovies()
+  await movieStore.fetchMovies()
 })
 
 const dialogVisible = ref(false)
@@ -98,8 +102,20 @@ const handleEdit = (movie) => {
   dialogVisible.value = true
 }
 
-const handleDelete = (movie) => {
-  // TODO: Implement delete movie logic
+const handleDelete = async (movie) => {
+  try {
+    await movieStore.deleteMovie(movie.id)
+    await movieStore.fetchMovies()
+    ElMessage.success('删除成功')
+  } catch (error) {
+    ElMessage.error('删除失败: ' + error.message)
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toISOString().split('T')[0]
 }
 
 const submitForm = async () => {
