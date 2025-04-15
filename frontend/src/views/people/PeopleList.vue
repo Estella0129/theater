@@ -21,9 +21,9 @@
     <el-pagination
       background
       layout="prev, pager, next"
-      :total="totalPeoples"
-      :page-size="pageSize"
+      :total="totalPages * 20"
       :current-page="currentPage"
+      :page-size="20"
       @current-change="handlePageChange"
       style="margin-top: 20px; justify-content: center;"
     />
@@ -40,15 +40,10 @@ export default {
     const PeopleStore = usePeopleStore();
     const router = useRouter();
     const currentPage = ref(1);
-    const pageSize = 20;
-
-    const totalPeoples = computed(() => PeopleStore.Peoples.length);
-    
-    const displayedPeoples = computed(() => {
-      const start = (currentPage.value - 1) * pageSize;
-      const end = start + pageSize;
-      return PeopleStore.Peoples.slice(start, end);
-    });
+    const pageSize = ref(20);
+    const totalPages = ref(1);
+    const totalPeoples = ref(0);
+    const displayedPeoples = ref([]);
 
     const handleDetail = (People) => {
       router.push(`/people/${People.id}`)
@@ -56,7 +51,7 @@ export default {
 
     const handlePageChange = async (page) => {
       currentPage.value = page;
-      await PeopleStore.fetchPeoples(page, pageSize);
+      await loadPeoples();
     };
 
     const getProfileImage = (path) => {
@@ -65,8 +60,19 @@ export default {
         : 'https://via.placeholder.com/200x300?text=No+Image';
     };
 
+    const loadPeoples = async () => {
+      try {
+        const data = await PeopleStore.fetchPeoples(currentPage.value, pageSize.value);
+        displayedPeoples.value = data.results;
+        totalPeoples.value = data.total_results;
+        totalPages.value = data.total_pages;
+      } catch (error) {
+        console.error('Failed to load peoples:', error);
+      }
+    };
+
     onMounted(async () => {
-      await PeopleStore.fetchPeoples();
+      await loadPeoples();
     });
 
     return {

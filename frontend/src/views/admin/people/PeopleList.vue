@@ -26,7 +26,11 @@
             {{ formatGender(scope.row.gender) }}
           </template>
         </el-table-column>
-        <el-table-column prop="birthday" label="出生日期" width="120" />
+        <el-table-column prop="birthday" label="出生日期" width="120">
+          <template #default="scope">
+            {{ formatDate(scope.row.birthday) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="place_of_birth" label="出生地" width="120" />
         <el-table-column label="操作" width="180">
           <template #default="scope">
@@ -37,11 +41,11 @@
       </el-table>
 
       <el-pagination
-        v-model:current-page="currentPage"
+        v-model="currentPage"
         :page-size="pageSize"
         layout="total, prev, pager, next"
         :total="total"
-        @current-change="fetchData"
+        @current-change="handlePageChange"
       />
     </el-card>
 
@@ -65,9 +69,21 @@ const pageSize = 20;
 const total = ref(0);
 const searchQuery = ref('');
 
+onMounted(() => {
+  // 从URL参数初始化搜索条件
+  const route = router.currentRoute.value;
+  if (route.query.search) {
+    searchQuery.value = route.query.search;
+  }
+  if (route.query.page) {
+    currentPage.value = parseInt(route.query.page);
+  }
+  fetchData();
+});
+
 const fetchData = async () => {
   try {
-    const data = await peopleStore.fetchPeoples(currentPage.value, pageSize.value, searchQuery.value);
+    const data = await peopleStore.fetchPeoples(currentPage.value, pageSize, searchQuery.value);
     total.value = data.total;
     // 更新URL参数
     router.push({
@@ -99,6 +115,11 @@ const handleEdit = (row) => {
   peopleFormRef.value.open('编辑人员', true, row);
 };
 
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  fetchData();
+};
+
 const handleDelete = async (row) => {
   try {
     await peopleStore.deletePeople(row.id);
@@ -117,6 +138,11 @@ const formatRole = (role) => {
   return roles[role] || role;
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toISOString().split('T')[0];
+};
+
 const formatGender = (gender) => {
   const genders = {
     0: '未知',
@@ -126,17 +152,7 @@ const formatGender = (gender) => {
   return genders[gender] || '未知';
 };
 
-onMounted(() => {
-  // 从URL参数初始化搜索条件
-  const route = router.currentRoute.value;
-  if (route.query.search) {
-    searchQuery.value = route.query.search;
-  }
-  if (route.query.page) {
-    currentPage.value = parseInt(route.query.page);
-  }
-  fetchData();
-});
+
 </script>
 
 <style scoped>
