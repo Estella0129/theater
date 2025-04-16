@@ -60,5 +60,20 @@ export const usePeopleStore = defineStore('people', () => {
         }
     }
 
-    return { Peoples, fetchPeoples, createPeople, updatePeople };
+    async function deletePeople(id) {
+        try {
+            const response = await fetch(`/api/v1/admin/people/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('删除人员失败:', error);
+            throw error;
+        }
+    }
+
+    return { Peoples, fetchPeoples, createPeople, updatePeople, deletePeople };
 })

@@ -1,6 +1,7 @@
 <template>
   <div class="people-list">
     <el-card>
+      <template #header>
       <div class="header">
         <el-input
           v-model="searchQuery"
@@ -12,16 +13,17 @@
         />
         <el-button type="primary" @click="handleAdd">添加人员</el-button>
       </div>
+      </template>
 
       <el-table :data="filteredPeoples" style="width: 100%" border>
-        <el-table-column prop="name" label="姓名" width="120" />
-        <el-table-column prop="original_name" label="原名" width="120" />
-        <el-table-column prop="role" label="角色" width="100">
+        <el-table-column prop="name" label="姓名" width="180" />
+        <el-table-column prop="original_name" label="原名" width="180" />
+        <el-table-column prop="role" label="角色" width="160">
           <template #default="scope">
             {{ formatRole(scope.row.role) }}
           </template>
         </el-table-column>
-        <el-table-column prop="gender" label="性别" width="80">
+        <el-table-column prop="gender" label="性别" width="120">
           <template #default="scope">
             {{ formatGender(scope.row.gender) }}
           </template>
@@ -31,8 +33,8 @@
             {{ formatDate(scope.row.birthday) }}
           </template>
         </el-table-column>
-        <el-table-column prop="place_of_birth" label="出生地" width="120" />
-        <el-table-column label="操作" width="180">
+        <el-table-column prop="place_of_birth" label="出生地" width="200" />
+        <el-table-column label="操作" width="240">
           <template #default="scope">
             <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
@@ -43,7 +45,7 @@
       <el-pagination
         v-model="currentPage"
         :page-size="pageSize"
-        layout="total, prev, pager, next"
+        layout=" prev, pager, next"
         :total="total"
         @current-change="handlePageChange"
       />
@@ -159,9 +161,19 @@ const formatGender = (gender) => {
 .people-list {
   padding: 20px;
 }
+
 .header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+}
+
+.el-table {
+  margin-top: 20px;
+}
+
+.el-pagination {
+  margin-top: 20px;
+  text-align: center;
 }
 </style>
