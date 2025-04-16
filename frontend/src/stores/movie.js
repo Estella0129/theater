@@ -10,13 +10,11 @@ export const useMovieStore = defineStore('movie', () => {
       const data = await response.json()
       console.log('原始电影数据:', data.results);
       movies.value = data.results.map(movie => {
-        const director = movie.Credits?.find(c => c.credit_type === "crew" && c.job === "Director");
-        console.log('电影ID:', movie.id, '导演信息:', director);
         return {
           ...movie,
           releaseDate: movie.release_date,
           rating: movie.vote_average / 2,
-          director: director && director.People ? director.People.name : "暂无导演信息"
+          director: movie.director || "暂无导演信息"
         };
       });
       return data;

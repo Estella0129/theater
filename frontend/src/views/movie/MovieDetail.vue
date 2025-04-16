@@ -6,7 +6,7 @@
       </template>
 
       <div class="movie-info">
-        <el-image :src="movie.poster" fit="cover" class="movie-poster"></el-image>
+        <el-image :src="getProfileImage(movie.poster_path)" fit="cover" class="movie-poster"></el-image>
 
         <div class="movie-meta">
           <p><strong>导演:</strong> {{ movie.director }}</p>
