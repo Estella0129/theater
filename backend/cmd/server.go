@@ -66,10 +66,15 @@ to quickly create a Cobra application.`,
 				admin.DELETE("/movies/:id", handlers.DeleteMovie) // 删除电影
 
 				// 人物管理路由
-				admin.POST("/people", handlers.CreatePeople)       // 创建人物
-				admin.GET("/people", handlers.GetAdminPeople)      // 获取人物列表
-				admin.PUT("/people/:id", handlers.UpdatePeople)    // 更新人物信息
-				admin.DELETE("/people/:id", handlers.DeletePeople) // 删除人物
+				admin.POST("/people", handlers.CreatePeople)    // 创建人物
+				admin.GET("/people", handlers.GetAdminPeople)   // 获取人物列表
+				admin.PUT("/people/:id", handlers.UpdatePeople) // 更新人物信息
+				admin.DELETE("/people/:id", handlers.DeletePeople)
+				// 类型管理路由
+				admin.POST("/genres", handlers.CreateGenre)       // 创建类型
+				admin.GET("/genres", handlers.GetAdminGenres)     // 获取类型列表
+				admin.PUT("/genres/:id", handlers.UpdateGenre)    // 更新类型信息
+				admin.DELETE("/genres/:id", handlers.DeleteGenre) // 删除类型
 			}
 		}
 

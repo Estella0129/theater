@@ -18,9 +18,13 @@
             <el-icon><film /></el-icon>
             <span>电影管理</span>
           </el-menu-item>
-          <el-menu-item index="/admin/people">
+           <el-menu-item index="/admin/people">
+            <el-icon><UserFilled /></el-icon>
+            <span>人物管理</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/genre">
             <el-icon><user /></el-icon>
-            <span>人员管理</span>
+            <span>类型管理</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -51,10 +55,11 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
-import { User, Film, ArrowDown } from '@element-plus/icons-vue'
+import { User, Film, ArrowDown, UserFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+4
 
 const handleLogout = () => {
   userStore.logout()

@@ -71,6 +71,12 @@ const router = createRouter({
           name: 'AdminPeople',
           component: () => import('../views/admin/people/PeopleList.vue')
         }
+        ,
+        {
+          path: 'genre',
+          name: 'AdminGenre',
+          component: () => import('../views/admin/genre/GenreList.vue')
+        }
       ]
     }
   ]
