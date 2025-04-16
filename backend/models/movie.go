@@ -32,11 +32,11 @@ type Movie struct {
 	Runtime             int            `json:"runtime"`
 	Tagline             string         `json:"tagline"`
 	Status              string         `json:"status"`
-	Director            string         `json:"director"`
 	Cast                string         `json:"cast"`
 	Duration            int            `json:"duration"`
 
-	Credits []Credit `gorm:"foreignKey:MovieID;references:ID"`
+	Director Credit   `gorm:"foreignKey:MovieID;references:ID"`
+	Credits  []Credit `gorm:"foreignKey:MovieID;references:ID"`
 
 	Images []Image `gorm:"many2many:movie_images;foreignKey:ID;joinForeignKey:MovieID;References:FilePath;joinReferences:ImageFilePath"`
 	Genres []Genre `gorm:"many2many:movie_genres;foreignKey:ID;joinForeignKey:MovieID;References:ID;joinReferences:GenreID"`
