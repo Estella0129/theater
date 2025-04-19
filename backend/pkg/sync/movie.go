@@ -151,9 +151,10 @@ func SyncMovies() error {
 		if result.Error != nil {
 			return result.Error
 		}
-		//_ = Images(tmdbMovie.ID)
 
-		//_ = SyncPeople(tmdbMovie.ID)
+		_ = Images(tmdbMovie.ID)
+
+		_ = SyncPeople(tmdbMovie.ID)
 
 		// 同步电影类型关联关系
 		if len(tmdbMovie.GenreIDs) > 0 {

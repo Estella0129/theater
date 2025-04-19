@@ -3,10 +3,11 @@ package sync
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Estella0129/theater/backend/config"
-	"github.com/Estella0129/theater/backend/models"
 	"io"
 	"net/http"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
 )
 
 func Images(movieID int) (err error) {
@@ -42,7 +43,7 @@ func Images(movieID int) (err error) {
 		return
 	}
 
-	for _, item := range response.Backdrops {
+	for index, item := range response.Backdrops {
 		r := models.MovieImage{
 			MovieID:       movieID,
 			ImageFilePath: item.FilePath,
@@ -58,9 +59,13 @@ func Images(movieID int) (err error) {
 		if result.Error != nil {
 			return result.Error
 		}
+
+		if index > 3 {
+			break
+		}
 	}
 
-	for _, item := range response.Posters {
+	for index, item := range response.Posters {
 		r := models.MovieImage{
 			MovieID:       movieID,
 			ImageFilePath: item.FilePath,
@@ -76,9 +81,13 @@ func Images(movieID int) (err error) {
 		if result.Error != nil {
 			return result.Error
 		}
+
+		if index > 3 {
+			break
+		}
 	}
 
-	for _, item := range response.Logos {
+	for index, item := range response.Logos {
 
 		r := models.MovieImage{
 			MovieID:       movieID,
@@ -94,6 +103,10 @@ func Images(movieID int) (err error) {
 
 		if result.Error != nil {
 			return result.Error
+		}
+
+		if index > 3 {
+			break
 		}
 	}
 

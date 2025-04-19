@@ -79,6 +79,10 @@ func SyncPeople(movieID int) (err error) {
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		if index > 10 {
+			break
+		}
 	}
 
 	for index, item := range data.Cast {
@@ -86,6 +90,10 @@ func SyncPeople(movieID int) (err error) {
 		err = syncCredit(movieID, item.CreditID, index)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		if index > 10 {
+			break
 		}
 	}
 
@@ -116,7 +124,7 @@ type CreditResponse struct {
 	} `json:"media"`
 	MediaType string `json:"media_type"`
 	ID        string `json:"id"`
-	People    struct {
+	Person    struct {
 		ID                 int         `json:"id"`
 		Name               string      `json:"name"`
 		OriginalName       string      `json:"original_name"`
@@ -126,7 +134,7 @@ type CreditResponse struct {
 		Gender             int         `json:"gender"`
 		KnownForDepartment string      `json:"known_for_department"`
 		ProfilePath        interface{} `json:"profile_path"`
-	} `json:"People"`
+	} `json:"Person"`
 }
 
 func syncCredit(movieID int, id string, index int) (err error) {
@@ -144,7 +152,7 @@ func syncCredit(movieID int, id string, index int) (err error) {
 		return
 	}
 
-	err = syncPeople(response.People.ID)
+	err = syncPeople(response.Person.ID)
 	if err != nil {
 		return
 	}
@@ -155,7 +163,7 @@ func syncCredit(movieID int, id string, index int) (err error) {
 		CreditType: response.CreditType,
 		Department: response.Department,
 		Job:        response.Job,
-		PeopleID:   response.People.ID,
+		PeopleID:   response.Person.ID,
 		Order:      index,
 	}
 
@@ -173,7 +181,7 @@ func syncPeople(id int) (err error) {
 	}
 	fmt.Println(fmt.Printf("syncPeople: %d\n", id))
 
-	url := fmt.Sprintf("https://api.themoviedb.org/3/People/%d?language=zh-CN", id)
+	url := fmt.Sprintf("https://api.themoviedb.org/3/person/%d?language=zh-CN", id)
 
 	req, _ := http.NewRequest("GET", url, nil)
 

@@ -5,11 +5,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/Estella0129/theater/backend/config"
-	"github.com/Estella0129/theater/backend/models"
 	"io"
 	"net/http"
 	"os"
+	"sync"
+
+	"github.com/Estella0129/theater/backend/config"
+	"github.com/Estella0129/theater/backend/models"
 
 	"github.com/spf13/cobra"
 )
@@ -54,7 +56,8 @@ to quickly create a Cobra application.`,
 		config.InitDB()
 
 		var movieImages []models.MovieImage
-		config.DB.Limit(20).Find(&movieImages)
+		config.DB.Find(&movieImages)
+		//config.DB.Limit(20).Find(&movieImages)
 
 		baseUrl := "https://image.tmdb.org/t/p/original"
 		// 图片存储目录
@@ -68,23 +71,38 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		for _, image := range movieImages {
-			// 拼接本地文件路径
-			localPath := imageDir + "/" + image.ImageFilePath
+		total := len(movieImages)
+		var wg sync.WaitGroup
+		workerLimit := make(chan struct{}, 10)
 
-			// 检查文件是否已存在
-			if _, err := os.Stat(localPath); os.IsNotExist(err) {
-				// 文件不存在，下载图片
-				imageUrl := baseUrl + image.ImageFilePath
-				err := downloadImage(imageUrl, localPath)
-				if err != nil {
-					// 记录下载失败
-					println("下载失败:", imageUrl, "错误:", err.Error())
-					continue
+		for index, image := range movieImages {
+			wg.Add(1)
+			workerLimit <- struct{}{}
+
+			go func(index int, image models.MovieImage) {
+				defer func() {
+					<-workerLimit
+					wg.Done()
+				}()
+
+				// 拼接本地文件路径
+				localPath := imageDir + "/" + image.ImageFilePath
+
+				// 检查文件是否已存在
+				if _, err := os.Stat(localPath); os.IsNotExist(err) {
+					// 文件不存在，下载图片
+					imageUrl := baseUrl + image.ImageFilePath
+					err := downloadImage(imageUrl, localPath)
+					if err != nil {
+						// 记录下载失败
+						println("下载失败:", imageUrl, "错误:", err.Error())
+						return
+					}
+					println(fmt.Sprintf("%d/%d 下载成功: %s", index+1, total, imageUrl))
 				}
-				println("下载成功:", imageUrl)
-			}
+			}(index, image)
 		}
+		wg.Wait()
 	},
 }
 

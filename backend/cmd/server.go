@@ -78,6 +78,9 @@ to quickly create a Cobra application.`,
 			}
 		}
 
+		// 设置静态文件路由
+		r.Static("/images", "./images")
+
 		// 启动HTTP服务器
 		r.Run(":8080")
 	},

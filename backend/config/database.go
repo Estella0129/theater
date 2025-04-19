@@ -20,6 +20,7 @@ func InitDB() {
 	// 自动迁移数据库表结构
 	log.Println("开始自动迁移数据库表结构...")
 	if err := db.AutoMigrate(
+		&models.MovieImage{},
 		&models.Movie{},
 		&models.User{},
 		&models.Genre{},
