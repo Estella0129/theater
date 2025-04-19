@@ -50,11 +50,12 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMovieStore } from '../../stores/movie'
+import { useGenreStore } from '../../stores/genre'
 
 const route = useRoute()
 const router = useRouter()
 const movieStore = useMovieStore()
-const movies = ref([])
+const genreStore = useGenreStore()
 const loading = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
@@ -73,7 +74,6 @@ const loadMovies = async () => {
     const data = await movieStore.fetchMovies(query)
     totalPages.value = data.total_pages
     currentPage.value = data.page
-    movies.value = data.results
   } finally {
     loading.value = false
   }
@@ -87,8 +87,9 @@ onMounted(async () => {
   await loadGenres()
 })
 const handleGenreClick = (genre) => {
-  router.push(`/movies?genre=${genre.id}`)
+  router.push(`/movies?genre=${genre.id}&page=1`)
   queryGenre.value = genre.id
+  currentPage.value = 1
   loadMovies()
 }
 const handleDetail = (movie) => {
@@ -102,7 +103,7 @@ const handlePageChange = (Page) => {
 
 const loadGenres = async () => {
   try {
-    genres.value = await movieStore.fetchGenres()
+    genres.value = await genreStore.fetchGenres()
   } catch (error) {
     console.error('Failed to load genres:', error)
   }
