@@ -40,6 +40,22 @@ export const useMovieStore = defineStore('movie', () => {
     }
   }
   
+  const fetchPeople = async (params = {}) => {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const response = await fetch(`/api/v1/admin/people?${query}`);
+      const data = await response.json();
+      return data.results.map(p => ({ 
+        id: p.id, 
+        name: p.name,
+        profile_path: p.profile_path
+      }));
+    } catch (error) {
+      console.error('Failed to fetch people:', error);
+      throw error;
+    }
+  };
+
   const updateMovie = async (movieData) => {
     try {
       const response = await fetch(`/api/v1/admin/movies/${movieData.id}`, {
@@ -102,5 +118,5 @@ const getGenreById = async (id) => {
   }
 }
 
-  return { movies, fetchMovies,updateMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres,getGenreById  }
+  return { movies, fetchMovies, updateMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres, getGenreById, fetchPeople }
 })

@@ -28,14 +28,51 @@
 
         <el-tab-pane label="演职人员" name="credits">
           <div class="credits-container">
-            <el-button type="primary" @click="addCredit">添加人员</el-button>
-            <el-table :data="form.Credits" style="width: 100%; margin-top: 20px">
+            <el-button type="primary" @click="creditDialogVisible = true">添加人员</el-button>
+
+<el-dialog v-model="creditDialogVisible" :title="currentCreditIndex === -1 ? '新增人员' : '编辑人员'" width="600px">
+  <el-form :model="creditForm" :rules="creditRules" ref="creditFormRef" label-width="100px">
+    <el-form-item label="部门" prop="department">
+      <el-input v-model="creditForm.department" placeholder="请输入部门" style="width: 100%" />
+    </el-form-item>
+    
+    <el-form-item label="职位" prop="job">
+      <el-input v-model="creditForm.job" placeholder="请输入职位" />
+    </el-form-item>
+    
+    <el-form-item label="人员" prop="people_id">
+      <el-select
+        v-model="creditForm.people_id"
+        filterable
+        remote
+        reserve-keyword
+        placeholder="搜索并选择人员"
+        :remote-method="searchPeople"
+        :loading="peopleLoading"
+        style="width: 100%"
+      >
+        <el-option
+          v-for="item in peopleOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </el-form-item>
+  </el-form>
+  
+  <template #footer>
+    <el-button @click="creditDialogVisible = false">取消</el-button>
+    <el-button type="primary" @click="saveCredit">确认</el-button>
+  </template>
+</el-dialog>
+            <el-table :data="form.Credits" :key="refreshKey" style="width: 100%; margin-top: 20px">
               <el-table-column prop="People.name" label="姓名" />
               <el-table-column prop="department" label="部门" />
               <el-table-column prop="job" label="职位" />
               <el-table-column label="操作">
                 <template #default="scope">
-                  <el-button size="small" @click="editCredit(scope.row)">编辑</el-button>
+                  <el-button size="small" @click="editCredit(scope.row, scope.$index)">编辑</el-button>
                   <el-button size="small" type="danger" @click="removeCredit(scope.$index)">删除</el-button>
                 </template>
               </el-table-column>
@@ -113,15 +150,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
-import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElMessage, ElSelect, ElOption } from 'element-plus'
+import { ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElMessage, ElSelect, ElOption, ElMessageBox } from 'element-plus'
 import { useMovieStore } from '@/stores/movie.js' // Import the store
 
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const activeTab = ref('basic')
 const formRef = ref(null)
+const refreshKey = ref(0)
 
 const form = reactive({
   title: '',
@@ -165,12 +203,111 @@ const addCredit = () => {
   })
 }
 
-const editCredit = (credit) => {
-  // 实现编辑逻辑
+// 编辑人员弹窗控制
+const creditDialogVisible = ref(false)
+const currentCreditIndex = ref(-1)
+const creditFormRef = ref(null)
+
+// 表单验证规则
+const creditRules = {
+  department: [{ required: true, message: '请选择部门', trigger: 'blur' }],
+  job: [{ required: true, message: '请输入职位', trigger: 'blur' }],
+  people_id: [{ required: true, message: '请选择人员', trigger: 'change' }]
 }
 
+// 人员搜索
+const peopleLoading = ref(false)
+const peopleOptions = ref([])
+
+const searchPeople = async (query) => {
+  if (query) {
+    peopleLoading.value = true
+    try {
+      const data = await movieStore.fetchPeople({ search: query })
+      peopleOptions.value = data.map(p => ({...p, value: p.id, label: p.name}))
+    } finally {
+      peopleLoading.value = false
+    }
+  }
+}
+
+// 打开编辑弹窗
+const editCredit = (credit, index) => {
+  currentCreditIndex.value = index
+  creditForm.people_id = credit.People?.id || ''
+  creditForm.department = credit.department || ''
+  creditForm.job = credit.job || ''
+  creditForm.credit_id = credit.credit_id || ''
+  creditForm.credit_type = credit.credit_type || ''
+  
+  // 如果已有人员信息则缓存到选项列表
+  if (credit.People?.id && credit.People?.name) {
+    const existing = peopleOptions.value.find(p => p.id === credit.People.id)
+    if (!existing) {
+      peopleOptions.value = [
+        ...peopleOptions.value,
+        {
+          id: credit.People.id,
+          name: credit.People.name,
+          value: credit.People.id,
+          label: credit.People.name
+        }
+      ]
+    }
+  }
+  creditDialogVisible.value = true
+}
+
+// 保存人员信息
+const saveCredit = async () => {
+  await creditFormRef.value.validate()
+  
+  console.log('保存人员数据:', JSON.parse(JSON.stringify(creditForm)))
+  
+  const newCredit = {
+    credit_id: creditForm.credit_id,
+    credit_type: creditForm.credit_type,
+    department: creditForm.department,
+    job: creditForm.job,
+    People: { 
+      id: creditForm.people_id,
+      name: peopleOptions.value.find(p => p.value === creditForm.people_id)?.label || ''
+    }
+  }
+
+  if (currentCreditIndex.value === -1) {
+    form.Credits.push(newCredit)
+  } else {
+    form.Credits = [...form.Credits.slice(0, currentCreditIndex.value), newCredit, ...form.Credits.slice(currentCreditIndex.value + 1)]
+    refreshKey.value++
+  }
+  
+  console.log('更新后的Credits数组:', JSON.parse(JSON.stringify(form.Credits)))
+  creditDialogVisible.value = false
+}
+
+// 初始化表单数据
+const creditForm = reactive({
+  department: '',
+  job: '',
+  people_id: '',
+  credit_id: '',
+  credit_type: '',
+  people_name: computed({
+    get: () => peopleOptions.value.find(p => p.id === creditForm.people_id)?.name || '',
+    set: () => {}
+  })
+})
+
 const removeCredit = (index) => {
-  form.Credits.splice(index, 1)
+  ElMessageBox.confirm('确定要删除该人员吗？', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    form.Credits.splice(index, 1)
+    ElMessage.success('删除成功')
+  }).catch(() => {})
 }
 
 const imageType = ref('backdrop')
