@@ -35,11 +35,11 @@ type Movie struct {
 	Cast                string         `json:"cast"`
 	Duration            int            `json:"duration"`
 
-	Director Credit   `gorm:"foreignKey:MovieID;references:ID"`
-	Credits  []Credit `gorm:"foreignKey:MovieID;references:ID"`
+	Director *Credit  `gorm:"foreignKey:MovieID;references:ID" json:"director,omitempty"`
+	Credits  []Credit `gorm:"foreignKey:MovieID;references:ID;association_autocreate:true"`
 
-	Images []Image `gorm:"many2many:movie_images;foreignKey:ID;joinForeignKey:MovieID;References:FilePath;joinReferences:ImageFilePath"`
-	Genres []Genre `gorm:"many2many:movie_genres;foreignKey:ID;joinForeignKey:MovieID;References:ID;joinReferences:GenreID"`
+	Images []Image `gorm:"many2many:movie_images;foreignKey:ID;joinForeignKey:MovieID;References:FilePath;joinReferences:ImageFilePath;association_autocreate:true"`
+	Genres []Genre `gorm:"many2many:movie_genres;foreignKey:ID;joinForeignKey:MovieID;References:ID;joinReferences:GenreID;association_autocreate:true"`
 }
 
 type Collection struct {

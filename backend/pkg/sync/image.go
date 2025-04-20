@@ -44,6 +44,11 @@ func Images(movieID int) (err error) {
 	}
 
 	for index, item := range response.Backdrops {
+
+		if item.Iso6391 != "" && item.Iso6391 != "zh" {
+			continue
+		}
+
 		r := models.MovieImage{
 			MovieID:       movieID,
 			ImageFilePath: item.FilePath,
@@ -66,6 +71,10 @@ func Images(movieID int) (err error) {
 	}
 
 	for index, item := range response.Posters {
+
+		if item.Iso6391 != "" && item.Iso6391 != "zh" {
+			continue
+		}
 		r := models.MovieImage{
 			MovieID:       movieID,
 			ImageFilePath: item.FilePath,
@@ -88,6 +97,10 @@ func Images(movieID int) (err error) {
 	}
 
 	for index, item := range response.Logos {
+
+		if item.Iso6391 != "" && item.Iso6391 != "zh" {
+			continue
+		}
 
 		r := models.MovieImage{
 			MovieID:       movieID,

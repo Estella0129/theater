@@ -1,9 +1,16 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/disintegration/imaging"
 
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/models"
@@ -75,7 +82,11 @@ func GetMovie(c *gin.Context) {
 	id := c.Param("id")
 
 	var movie models.Movie
-	result := config.DB.Preload("Credits").Preload("Credits.People").First(&movie, id)
+	result := config.DB.
+		Preload("Credits").
+		Preload("Credits.People").
+		Preload("Genres").
+		Preload("Images").First(&movie, id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
 		return
@@ -87,17 +98,21 @@ func GetMovie(c *gin.Context) {
 // CreateMovie 创建电影
 func CreateMovie(c *gin.Context) {
 	var movie models.Movie
+
 	if err := c.ShouldBindJSON(&movie); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求数据: " + err.Error()})
 		return
 	}
 
-	result := config.DB.Create(&movie)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create movie"})
+	tx := config.DB.Begin()
+
+	if err := tx.Create(&movie).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建电影失败"})
 		return
 	}
 
+	tx.Commit()
 	c.JSON(http.StatusCreated, movie)
 }
 
@@ -106,22 +121,51 @@ func UpdateMovie(c *gin.Context) {
 	id := c.Param("id")
 
 	var movie models.Movie
-	if err := config.DB.First(&movie, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
-		return
-	}
 
 	if err := c.ShouldBindJSON(&movie); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid update data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("无效的更新数据: %s", err.Error())})
 		return
 	}
 
-	result := config.DB.Save(&movie)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update movie"})
+	tx := config.DB.Begin()
+	//if err := tx.Preload("Genres").First(&movie, id).Error; err != nil {
+	//	c.JSON(http.StatusNotFound, gin.H{"error": "电影未找到"})
+	//	return
+	//}
+
+	if err := tx.Model(&movie).Where(id).Updates(movie).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新电影失败"})
 		return
 	}
+	//
+	//// 更新类型关联
+	//var genres []models.Genre
+	//if err := tx.Where("id IN ?", movie.Genres).Find(&genres).Error; err != nil {
+	//	tx.Rollback()
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "无效的电影类型"})
+	//	return
+	//}
+	//tx.Model(&movie).Association("Genres").Replace(genres)
+	//
+	//// 删除原有关联数据
+	//if err := tx.Where("movie_id = ?", movie.ID).Delete(&models.Credit{}).Error; err != nil {
+	//	tx.Rollback()
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "清除演职人员失败"})
+	//	return
+	//}
+	//
+	//// 重新创建演职人员
+	//for _, credit := range movie.Credits {
+	//	credit.MovieID = int(movie.ID)
+	//	if err := tx.Create(&credit).Error; err != nil {
+	//		tx.Rollback()
+	//		c.JSON(http.StatusInternalServerError, gin.H{"error": "保存演职人员失败"})
+	//		return
+	//	}
+	//}
 
+	tx.Commit()
 	c.JSON(http.StatusOK, movie)
 }
 
@@ -136,6 +180,82 @@ func DeleteMovie(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Movie deleted successfully"})
+}
+
+// UploadImage 处理图片上传
+func UploadImage(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "文件上传失败",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// 验证文件类型
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[file.Header.Get("Content-Type")] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "不支持的图片格式",
+			"detail": file.Header.Get("Content-Type"),
+		})
+		return
+	}
+
+	// 生成唯一文件名
+	fileExt := filepath.Ext(file.Filename)
+	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+	dstPath := filepath.Join("images", fileName)
+
+	// 设置CORS头
+	c.Header("Access-Control-Allow-Origin", "*")
+	// 保存文件
+	if err := c.SaveUploadedFile(file, dstPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "文件保存失败",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// 获取图片元数据
+	dstFile, err := os.Open(dstPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "打开保存文件失败",
+			"message": err.Error(),
+		})
+		return
+	}
+	defer dstFile.Close()
+
+	// 重置文件读取位置
+	dstFile.Seek(0, 0)
+	img, err := imaging.Open(dstFile.Name(), imaging.AutoOrientation(true))
+	if err != nil {
+		log.Printf("解码失败 文件路径:%s 错误详情:%v", dstPath, err)
+		_ = os.Remove(dstPath)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "解析图片元数据失败",
+			"message": fmt.Sprintf("文件格式可能损坏，详情：%s", err.Error()),
+		})
+		return
+	}
+
+	// 移除未使用的str变量
+	fmt.Println("图片元数据获取错误:", err)
+
+	c.JSON(http.StatusOK, gin.H{
+		"file_path":    "/" + fileName,
+		"width":        img.Bounds().Dx(),
+		"height":       img.Bounds().Dy(),
+		"aspect_ratio": float64(img.Bounds().Dx()) / float64(img.Bounds().Dy()),
+	})
 }
 
 // GetAdminMovies 获取电影列表（管理后台）

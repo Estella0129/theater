@@ -4,6 +4,12 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/handlers"
 	"github.com/gin-gonic/gin"
@@ -52,7 +58,9 @@ to quickly create a Cobra application.`,
 			// 管理后台接口路由组
 			admin := v1.Group("/admin")
 			{
-				admin.Use()
+
+				admin.POST("/upload-image", handlers.UploadImage) // 上传图片
+
 				// 用户管理路由
 				admin.POST("/users", handlers.CreateUser)       // 管理员创建用户
 				admin.GET("/users", handlers.GetUsers)          // 获取用户列表
@@ -78,8 +86,58 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		// 设置静态文件路由
-		r.Static("/images", "./images")
+		// 添加中间件处理图片下载
+		r.Use(func(c *gin.Context) {
+			if strings.HasPrefix(c.Request.URL.Path, "/images/") {
+				filename := strings.TrimPrefix(c.Request.URL.Path, "/images/")
+				localPath := "./images/" + filename
+
+				// 检查文件是否存在
+				if _, err := os.Stat(localPath); os.IsNotExist(err) {
+					// 文件不存在，从TMDB下载
+					imageUrl := "https://image.tmdb.org/t/p/original/" + filename
+					resp, err := http.Get(imageUrl)
+					if err != nil || resp.StatusCode != http.StatusOK {
+						c.AbortWithStatus(http.StatusNotFound)
+						return
+					}
+					defer resp.Body.Close()
+
+					// 确保目录存在
+					if err := os.MkdirAll(filepath.Dir(localPath), 0755); err != nil {
+						c.AbortWithStatus(http.StatusInternalServerError)
+						return
+					}
+
+					// 保存文件
+					out, err := os.Create(localPath)
+					if err != nil {
+						c.AbortWithStatus(http.StatusInternalServerError)
+						return
+					}
+					defer out.Close()
+
+					if _, err := io.Copy(out, resp.Body); err != nil {
+						c.AbortWithStatus(http.StatusInternalServerError)
+						return
+					}
+
+					// 立即返回下载的文件内容
+					http.ServeFile(c.Writer, c.Request, localPath)
+					c.Abort()
+					return
+
+					// 重新尝试读取本地文件
+					if file, err := os.Open(localPath); err == nil {
+						defer file.Close()
+						c.File(localPath)
+						c.Abort()
+						return
+					}
+				}
+			}
+			c.Next()
+		}).StaticFS("/images", gin.Dir("./images", false))
 
 		// 启动HTTP服务器
 		r.Run(":8080")
