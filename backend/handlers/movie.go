@@ -133,6 +133,32 @@ func UpdateMovie(c *gin.Context) {
 	//	return
 	//}
 
+	// 删除原有关联数据
+	if err := tx.Where("movie_id = ?", movie.ID).Delete(&models.Credit{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "清除演职人员失败"})
+		return
+	}
+
+	// 删除原有关联数据
+	if err := tx.Where("movie_id = ?", movie.ID).Delete(&models.MovieImage{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "清除图片失败"})
+		return
+	}
+
+	imagePathList := []string{}
+	for _, image := range movie.Images {
+		imagePathList = append(imagePathList, image.FilePath)
+	}
+
+	// 删除原有关联数据
+	if err := tx.Where("file_path in ?", imagePathList).Delete(&models.Image{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "清除图片失败"})
+		return
+	}
+
 	if err := tx.Model(&movie).Where(id).Updates(movie).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新电影失败"})
@@ -148,12 +174,6 @@ func UpdateMovie(c *gin.Context) {
 	//}
 	//tx.Model(&movie).Association("Genres").Replace(genres)
 	//
-	//// 删除原有关联数据
-	//if err := tx.Where("movie_id = ?", movie.ID).Delete(&models.Credit{}).Error; err != nil {
-	//	tx.Rollback()
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "清除演职人员失败"})
-	//	return
-	//}
 	//
 	//// 重新创建演职人员
 	//for _, credit := range movie.Credits {
