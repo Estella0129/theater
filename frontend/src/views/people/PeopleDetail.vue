@@ -27,7 +27,7 @@
               <div class="credit-info">
                 <h4>{{ credit.Movie.title }}</h4>
                 <p>{{ credit.character || credit.job }}</p>
-                <p>{{ credit.Movie.release_date }}</p>
+                <p>{{ formatDate(credit.Movie.release_date) }}</p>
               </div>
             </router-link>
           </div>
@@ -46,6 +46,9 @@
           />
         </div>
       </section>
+    </div>
+    <div class="back-button">
+      <el-button type="primary" @click="$router.push('/people')">返回人物列表</el-button>
     </div>
   </div>
 </template>
@@ -99,6 +102,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  text-decoration: none
 }
 
 .People-header {
@@ -142,26 +146,51 @@ export default {
 
 .People-content {
   margin-top: 40px;
+  text-decoration: none;
 }
 
 .credit-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  gap: 25px;
+  padding: 10px 0;
+  text-decoration: none;
 }
 
 .credit-item {
-  background: #f5f5f5;
-  border-radius: 5px;
+  background: #fff;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.credit-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .credit-item img {
   width: 100%;
+  height: 300px;
+  object-fit: cover;
 }
 
 .credit-info {
-  padding: 10px;
+  padding: 15px;
+  color: #333;
+  text-decoration: none
+}
+
+.credit-info h4 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.credit-info p {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
 }
 
 .image-gallery {
@@ -178,5 +207,10 @@ export default {
 
 .image-gallery img:hover {
   transform: scale(1.05);
+}
+
+.back-button {
+  margin-top: 30px;
+  text-align: center;
 }
 </style>

@@ -10,7 +10,12 @@
       
       </template>
       <el-table :data="genres" style="width: 100%" v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80"></el-table-column>
+        <!-- <el-table-column prop="id" label="ID" width="80"></el-table-column> -->
+        <el-table-column label="ID" width="80">
+          <template #default="scope">
+            {{ scope.$index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="类型名称"></el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="scope">

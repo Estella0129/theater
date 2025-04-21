@@ -2,8 +2,8 @@
   <div class="home-container">
     <h1>电影列表</h1>
     <div class="movie-grid">
-      <div v-for="movie in movies" :key="movie.id" class="movie-card">
-        <img :src="movie.poster" :alt="movie.title" class="movie-poster" />
+      <div v-for="movie in movies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
+        <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
         <h3>{{ movie.title }}</h3>
         <p>{{ movie.year }}</p>
       </div>
@@ -14,14 +14,26 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useMovieStore } from '../stores/movie'
+import { useRouter } from 'vue-router'
 
 const movieStore = useMovieStore()
+const router = useRouter()
 const movies = ref([])
+
+const getProfileImage = (path) => {
+  return path 
+    ? `https://image.tmdb.org/t/p/w200${path}` 
+    : 'https://via.placeholder.com/200x300?text=No+Image';
+};
 
 onMounted(async () => {
   await movieStore.fetchMovies()
   movies.value = movieStore.movies
 })
+
+const handleDetail = (movie) => {
+  router.push(`/movies/${movie.id}`)
+}
 </script>
 
 <style scoped>
@@ -30,14 +42,22 @@ onMounted(async () => {
 }
 
 .movie-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 2rem;
+  display: flex;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  scrollbar-width: none;
+}
+
+.movie-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .movie-card {
   cursor: pointer;
   transition: transform 0.2s;
+  flex: 0 0 auto;
+  width: 150px;
 }
 
 .movie-card:hover {
@@ -45,8 +65,9 @@ onMounted(async () => {
 }
 
 .movie-poster {
-  width: 100%;
-  height: auto;
+  width: 150px;
+  height: 225px;
   border-radius: 8px;
+  object-fit: cover;
 }
 </style>
