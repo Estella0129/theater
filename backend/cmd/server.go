@@ -104,20 +104,20 @@ to quickly create a Cobra application.`,
 					defer resp.Body.Close()
 
 					// 确保目录存在
-					if err := os.MkdirAll(filepath.Dir(localPath), 0755); err != nil {
+					if error := os.MkdirAll(filepath.Dir(localPath), 0755); error != nil {
 						c.AbortWithStatus(http.StatusInternalServerError)
 						return
 					}
 
 					// 保存文件
-					out, err := os.Create(localPath)
-					if err != nil {
+					out, error := os.Create(localPath)
+					if error != nil {
 						c.AbortWithStatus(http.StatusInternalServerError)
 						return
 					}
 					defer out.Close()
 
-					if _, err := io.Copy(out, resp.Body); err != nil {
+					if _, error := io.Copy(out, resp.Body); error != nil {
 						c.AbortWithStatus(http.StatusInternalServerError)
 						return
 					}
@@ -128,12 +128,7 @@ to quickly create a Cobra application.`,
 					return
 
 					// 重新尝试读取本地文件
-					if file, err := os.Open(localPath); err == nil {
-						defer file.Close()
-						c.File(localPath)
-						c.Abort()
-						return
-					}
+
 				}
 			}
 			c.Next()

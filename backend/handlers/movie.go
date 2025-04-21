@@ -235,10 +235,10 @@ func UploadImage(c *gin.Context) {
 	// 设置CORS头
 	c.Header("Access-Control-Allow-Origin", "*")
 	// 保存文件
-	if err := c.SaveUploadedFile(file, dstPath); err != nil {
+	if error := c.SaveUploadedFile(file, dstPath); error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "文件保存失败",
-			"message": err.Error(),
+			"message": error.Error(),
 		})
 		return
 	}

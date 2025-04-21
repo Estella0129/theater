@@ -14,7 +14,7 @@ export const useMovieStore = defineStore('movie', () => {
           ...movie,
           releaseDate: movie.release_date,
           rating: movie.vote_average / 2,
-          director: movie.director?.People?.name || "暂无导演信息"
+          director: movie.Director?.People?.name || "暂无导演信息"
           // director: movie.Director?.People?.name || "暂无导演信息"
         };
       });
