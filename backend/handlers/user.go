@@ -178,8 +178,10 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	var updateData struct {
-		Email string `json:"email"`
-		Role  string `json:"role"`
+		Username string `json:"username"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Role     string `json:"role"`
 	}
 
 	if err := c.ShouldBindJSON(&updateData); err != nil {
@@ -189,8 +191,10 @@ func UpdateUser(c *gin.Context) {
 
 	// 更新用户信息
 	result := config.DB.Model(&user).Updates(models.User{
-		Email: updateData.Email,
-		Role:  updateData.Role,
+		Username: updateData.Username,
+		Name:     updateData.Name,
+		Email:    updateData.Email,
+		Role:     updateData.Role,
 	})
 
 	if result.Error != nil {
@@ -199,6 +203,49 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func UpdatePassword(c *gin.Context) {
+	id := c.Param("id")
+
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	var passwordData struct {
+		CurrentPassword string `json:"current_password" binding:"required"`
+		NewPassword     string `json:"new_password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&passwordData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid password data"})
+		return
+	}
+
+	// 验证当前密码
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordData.CurrentPassword))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Current password is incorrect"})
+		return
+	}
+
+	// 加密新密码
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordData.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	// 更新密码
+	user.Password = string(hashedPassword)
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
 
 // DeleteUser 删除用户
