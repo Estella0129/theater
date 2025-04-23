@@ -16,4 +16,6 @@ type User struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+	// 由于 models 未定义，这里假设 Movie 结构体也在同一包内，去掉 models. 引用
+	FavoriteMovies []Movie `gorm:"many2many:user_favorite_movies;" json:"favorite_movies"`
 }

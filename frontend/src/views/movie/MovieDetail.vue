@@ -2,7 +2,12 @@
   <div class="movie-detail-container">
     <el-card class="movie-card">
       <template #header>
-        <h2>{{ movie.title }}</h2>
+        <div class="header-container">
+          <h2>{{ movie.title }}</h2>
+          <el-button type="info" @click="toggleFavorite" class="favorite-btn">
+            <el-icon :color="isFavorite ? '#e6a23c' : '' " :size=" isFavorite?'26px':''"><StarFilled v-if="isFavorite" /><Star v-else /></el-icon>
+          </el-button>
+        </div>
       </template>
 
       <div class="movie-info">
@@ -23,6 +28,7 @@
       <div class="movie-actions">
         <el-button type="primary" @click="goBack">返回列表</el-button>
         <el-button type="info" @click="showStaffDialog = true">查看工作人员</el-button>
+        
       </div>
 
       <div class="cast-list">
@@ -52,6 +58,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMovieStore } from '../../stores/movie'
+import { Star, StarFilled } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -59,6 +66,7 @@ const movieStore = useMovieStore()
 
 const movie = ref({})
 const showStaffDialog = ref(false)
+const isFavorite = ref(false)
 
 const getProfileImage = (path) => {
       return path 
@@ -69,7 +77,28 @@ const getProfileImage = (path) => {
 onMounted(async () => {
   const movieId = route.params.id
   movie.value = await movieStore.getMovieById(movieId)
+  // 检查是否已收藏
+  checkFavoriteStatus()
 })
+
+const checkFavoriteStatus = async () => {
+  // 这里需要调用API检查当前用户是否已收藏该电影
+  // 暂时模拟已收藏状态
+  isFavorite.value = false
+}
+
+const toggleFavorite = async () => {
+  try {
+    if (isFavorite.value) {
+      // 调用取消收藏API
+    } else {
+      // 调用添加收藏API
+    }
+    isFavorite.value = !isFavorite.value
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  }
+}
 
 const goBack = () => {
   router.push('/movies')
@@ -84,6 +113,17 @@ const goBack = () => {
 .movie-card {
   max-width: 1000px;
   margin: 0 auto;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favorite-btn {
+  margin-left: 10px;
+  font-size: 24px;
 }
 
 .movie-info {

@@ -189,6 +189,88 @@ func UpdateMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, movie)
 }
 
+// AddFavorite 添加电影收藏
+func AddFavorite(c *gin.Context) {
+	userId := c.GetUint("userId")
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "请先登录"})
+		return
+	}
+
+	movieId := c.Param("id")
+	var movie models.Movie
+	if err := config.DB.First(&movie, movieId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "电影不存在"})
+		return
+	}
+
+	var user models.User
+	if err := config.DB.Preload("FavoriteMovies").First(&user, userId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	// 检查是否已收藏
+	for _, m := range user.FavoriteMovies {
+		if m.ID == movie.ID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "已收藏该电影"})
+			return
+		}
+	}
+
+	// 添加收藏
+	if err := config.DB.Model(&user).Association("FavoriteMovies").Append(&movie); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "收藏失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "收藏成功"})
+}
+
+// RemoveFavorite 取消电影收藏
+func RemoveFavorite(c *gin.Context) {
+	userId := c.GetUint("userId")
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "请先登录"})
+		return
+	}
+
+	movieId := c.Param("id")
+	var movie models.Movie
+	if err := config.DB.First(&movie, movieId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "电影不存在"})
+		return
+	}
+
+	var user models.User
+	if err := config.DB.Preload("FavoriteMovies").First(&user, userId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	// 检查是否已收藏
+	found := false
+	for _, m := range user.FavoriteMovies {
+		if m.ID == movie.ID {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "未收藏该电影"})
+		return
+	}
+
+	// 取消收藏
+	if err := config.DB.Model(&user).Association("FavoriteMovies").Delete(&movie); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "取消收藏失败"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "取消收藏成功"})
+}
+
 // DeleteMovie 删除电影
 func DeleteMovie(c *gin.Context) {
 	id := c.Param("id")

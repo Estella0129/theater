@@ -23,7 +23,7 @@
             <span>人物管理</span>
           </el-menu-item>
           <el-menu-item index="/admin/genre">
-            <el-icon><user /></el-icon>
+            <el-icon><Reading /></el-icon>
             <span>类型管理</span>
           </el-menu-item>
         </el-menu>
@@ -55,7 +55,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
-import { User, Film, ArrowDown, UserFilled } from '@element-plus/icons-vue'
+import { User, Film, ArrowDown, UserFilled, Reading} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
