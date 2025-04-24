@@ -27,6 +27,29 @@ export const useMovieStore = defineStore('movie', () => {
       throw error;
     }
   }
+  const fetchAdminMovies = async (query = { page: 1, pageSize: 20, genre: '', sort_by: '' }) => {
+    try {
+      let url = `/api/v1/admin/movies?page=${query.page}&page_size=${query.pageSize}`;
+      if (query.genre) url += `&genre=${query.genre}`;
+      if (query.sort_by) url += `&sort_by=${query.sort_by}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log('原始电影数据:', data.results);
+      movies.value = data.results.map(movie => {
+        return {
+          ...movie,
+          releaseDate: movie.release_date,
+          rating: movie.vote_average / 2,
+          director: movie.Director?.People?.name || "暂无导演信息"
+        };
+      });
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch movies:', error);
+      throw error;
+    }
+  }
   
   const searchResults = ref([])
   const searchTotalPages = ref(1)
@@ -145,5 +168,5 @@ const getGenreById = async (id) => {
   }
 }
 
-  return { movies, fetchMovies, updateMovie,createMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres, getGenreById, fetchPeople }
+  return { movies, fetchMovies,fetchAdminMovies, updateMovie,createMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres, getGenreById, fetchPeople }
 })

@@ -13,7 +13,7 @@
             <el-input v-model="form.original_language" />
           </el-form-item>
           <el-form-item label="简介" prop="overview">
-            <el-input v-model="form.overview" type="textarea" rows="4" />
+            <el-input v-model="form.overview" type="textarea" :rows="4" />
           </el-form-item>
           <el-form-item label="上映日期" prop="release_date" required>
             <el-date-picker v-model="form.release_date" type="date" value-format="YYYY-MM-DD" />
@@ -351,7 +351,7 @@ const submitForm = async () => {
     const submitData = {
       ...form,
       Genres: form.Genres,
-      release_date: form.release_date ? `${form.release_date}T00:00:00Z` : null,
+      release_date: form.release_date,
       Credits: form.Credits.map(credit => ({
         ...credit,
         People: credit.People.id ? { id: credit.People.id } : credit.People

@@ -44,7 +44,7 @@ const movies = ref([])
 const movieFormRef = ref(null)
 
 onMounted(async () => {
-  await movieStore.fetchMovies()
+  await movieStore.fetchAdminMovies() // 修改为调用后台接口
 })
 
 const openMovieForm = async (movie = null) => {
@@ -61,7 +61,7 @@ const openMovieForm = async (movie = null) => {
 }
 
 const onMovieFormSuccess = async () => {
-  await movieStore.fetchMovies()
+  await movieStore.fetchAdminMovies() // 修改为调用后台接口
 }
 
 const handleDelete = async (movie) => {

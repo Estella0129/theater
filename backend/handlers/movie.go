@@ -411,19 +411,30 @@ func UploadImage(c *gin.Context) {
 func GetAdminMovies(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	searchQuery := strings.TrimSpace(c.DefaultQuery("query", ""))
 
 	var movies []models.Movie
 	var total int64
 
 	offset := (page - 1) * pageSize
 
-	// 获取总记录数
-	config.DB.Model(&models.Movie{}).Count(&total)
+	// 构建查询
+	dbQuery := config.DB.Model(&models.Movie{})
 
-	// 获取分页数据
-	result := config.DB.Offset(offset).Limit(pageSize).Find(&movies)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch movies"})
+	// 添加搜索条件
+	if searchQuery != "" {
+		dbQuery = dbQuery.Where("title LIKE ? OR original_title LIKE ?", "%"+searchQuery+"%", "%"+searchQuery+"%")
+	}
+
+	// 获取总记录数
+	if err := dbQuery.Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影总数失败"})
+		return
+	}
+
+	// 获取分页数据，按ID逆序排列
+	if err := dbQuery.Order("id DESC").Offset(offset).Limit(pageSize).Find(&movies).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影列表失败"})
 		return
 	}
 
