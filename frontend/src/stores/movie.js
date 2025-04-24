@@ -74,6 +74,24 @@ export const useMovieStore = defineStore('movie', () => {
     }
   }
 
+
+  const createMovie = async (movieData) => {
+    try {
+      const response = await fetch('/api/v1/admin/movies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(movieData)
+      })
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to create movie:', error)
+      throw error
+    }
+  }
+
   const getMovieById = async (id) => {
     try {
       const response = await fetch(`/api/v1/frontend/movies/${id}`)
@@ -119,5 +137,5 @@ const getGenreById = async (id) => {
   }
 }
 
-  return { movies, fetchMovies, updateMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres, getGenreById, fetchPeople }
+  return { movies, fetchMovies, updateMovie,createMovie, searchMovies, searchResults, searchTotalPages, getMovieById, genres, fetchGenres, getGenreById, fetchPeople }
 })

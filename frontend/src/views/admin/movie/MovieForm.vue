@@ -15,8 +15,8 @@
           <el-form-item label="简介" prop="overview">
             <el-input v-model="form.overview" type="textarea" rows="4" />
           </el-form-item>
-          <el-form-item label="上映日期" prop="release_date">
-            <el-date-picker v-model="form.release_date" type="date" />
+          <el-form-item label="上映日期" prop="release_date" required>
+            <el-date-picker v-model="form.release_date" type="date" value-format="YYYY-MM-DD" />
           </el-form-item>
           <el-form-item label="时长(分钟)" prop="runtime">
             <el-input-number v-model="form.runtime" :min="0" />
@@ -89,7 +89,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="类型">
-  <template #default="{ row, $index }">
+  <template #default="{ row}">
     <el-select v-model="row.type" placeholder="选择类型" style="width: 100%">
       <el-option label="海报" value="poster" />
       <el-option label="背景" value="backdrop" />
@@ -101,7 +101,7 @@
               <el-table-column prop="width" label="宽度" />
               <el-table-column prop="height" label="高度" />
               <el-table-column label="操作">
-                <template #default="{ row, $index }">
+                <template #default="{ $index }">
                   <el-button size="small" type="success" @click="handleAddImage($index)">新增</el-button>
                   <el-upload
                     action="#"
@@ -351,7 +351,7 @@ const submitForm = async () => {
     const submitData = {
       ...form,
       Genres: form.Genres,
-      release_date: form.release_date ? new Date(form.release_date).toISOString() : '',
+      release_date: form.release_date ? `${form.release_date}T00:00:00Z` : null,
       Credits: form.Credits.map(credit => ({
         ...credit,
         People: credit.People.id ? { id: credit.People.id } : credit.People
