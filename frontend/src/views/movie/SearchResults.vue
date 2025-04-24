@@ -2,8 +2,13 @@
   <div class="search-results-container">
     <el-card class="search-results-card">
       <template #header>
-        <h2>搜索结果</h2>
-        <div class="search-query">搜索关键词: "{{ searchQuery }}"</div>
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2>搜索结果</h2>
+            <div class="search-query">搜索关键词: "{{ searchQuery }}"</div>
+          </div>
+          <el-button type="primary" @click="goBackToList">返回列表</el-button>
+        </div>
       </template>
 
       <el-table :data="movieStore.searchResults" style="width: 100%" v-loading="loading">
@@ -64,6 +69,10 @@ const handlePageChange = async (page) => {
 
 const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)
+}
+
+const goBackToList = () => {
+  router.push('/movies')
 }
 </script>
 
