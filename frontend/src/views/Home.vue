@@ -1,19 +1,19 @@
 <template>
   <div class="home-container">
-    <h1>电影列表</h1>
+    <h1>热门电影</h1>
     <div class="movie-grid">
       <div v-for="movie in movies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
         <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
         <h3>{{ movie.title }}</h3>
-        <p>{{ movie.year }}</p>
+        <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
       </div>
     </div>
-    <h1>动画电影</h1>
+    <!-- <h1>动画电影</h1>
     <div class="movie-grid">
       <div v-for="movie in animationMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
         <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
         <h3>{{ movie.title }}</h3>
-        <p>{{ movie.year }}</p>
+        <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
       </div>
     </div>
     <h1>动作电影</h1>
@@ -21,7 +21,23 @@
       <div v-for="movie in actionMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
         <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
         <h3>{{ movie.title }}</h3>
-        <p>{{ movie.year }}</p>
+        <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
+      </div>
+    </div> -->
+    <h1>评分最高</h1>
+    <div class="movie-grid">
+      <div v-for="movie in topRatedMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
+        <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
+        <h3>{{ movie.title }}</h3>
+        <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
+      </div>
+    </div>
+    <h1>趋势榜单</h1>
+    <div class="movie-grid">
+      <div v-for="movie in trendingMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
+        <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
+        <h3>{{ movie.title }}</h3>
+        <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
       </div>
     </div>
   </div>
@@ -37,6 +53,8 @@ const router = useRouter()
 const movies = ref([])
 const animationMovies = ref([])
 const actionMovies = ref([])
+const topRatedMovies = ref([])
+const trendingMovies = ref([])
 
 const getProfileImage = (path) => {
   return path 
@@ -48,12 +66,19 @@ onMounted(async () => {
   await movieStore.fetchMovies()
   movies.value = movieStore.movies
   
-  // 获取动画类型电影 (genre_id=16)
-  const animationData = await movieStore.fetchMovies({genre: 14})
-  animationMovies.value = animationData.results
-  //获取动作类型电影 (genre_id=28)
-  const actionData = await movieStore.fetchMovies({genre: 28})
-  actionMovies.value = actionData.results
+  // // 获取动画类型电影 (genre_id=16)
+  // const animationData = await movieStore.fetchMovies({genre: 14})
+  // animationMovies.value = animationData.results
+  // //获取动作类型电影 (genre_id=28)
+  // const actionData = await movieStore.fetchMovies({genre: 28})
+  // actionMovies.value = actionData.results
+  // 获取评分最高的20部电影
+  const topRatedData = await movieStore.fetchMovies({ sort_by: 'vote_average.desc', page: 1, limit: 20 })
+  topRatedMovies.value = topRatedData.results.sort((a, b) => b.vote_average - a.vote_average)
+  
+  // 获取趋势电影 (按人气排序)
+  const trendingData = await movieStore.fetchMovies({ sort_by: 'popularity.desc', page: 1, limit: 20 })
+  trendingMovies.value = trendingData.results.sort((a, b) => b.popularity - a.popularity)
 })
 
 const handleDetail = (movie) => {
