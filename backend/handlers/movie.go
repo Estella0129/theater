@@ -106,10 +106,57 @@ func CreateMovie(c *gin.Context) {
 
 	tx := config.DB.Begin()
 
+	// 创建电影主体
 	if err := tx.Create(&movie).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建电影失败"})
 		return
+	}
+
+	// 关联类型数据
+	if len(movie.Genres) > 0 {
+		if err := tx.Model(&movie).Association("Genres").Append(movie.Genres); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "关联电影类型失败"})
+			return
+		}
+	}
+
+	// 创建演职人员
+	for _, credit := range movie.Credits {
+		// 安全类型转换处理
+		movieID, err := strconv.ParseUint(strconv.FormatUint(uint64(movie.ID), 10), 10, 64)
+		if err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "无效的Movie ID格式"})
+			return
+		}
+		credit.MovieID = int(movieID)
+		if err := tx.Create(&credit).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "保存演职人员失败"})
+			return
+		}
+	}
+
+	// 创建图片关联
+	for _, image := range movie.Images {
+		// 创建图片记录
+		if err := tx.Create(&image).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "保存图片失败"})
+			return
+		}
+		// 创建电影-图片关联
+		movieImage := models.MovieImage{
+			MovieID:       int(movie.ID),
+			ImageFilePath: image.FilePath,
+		}
+		if err := tx.Create(&movieImage).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "关联图片失败"})
+			return
+		}
 	}
 
 	tx.Commit()
