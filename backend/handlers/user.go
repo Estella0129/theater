@@ -187,6 +187,7 @@ func UpdateUser(c *gin.Context) {
 		Name     string `json:"name"`
 		Email    string `json:"email"`
 		Role     string `json:"role"`
+		Gender   string `json:"gender"`
 	}
 
 	if err := c.ShouldBindJSON(&updateData); err != nil {
@@ -200,10 +201,15 @@ func UpdateUser(c *gin.Context) {
 		Name:     updateData.Name,
 		Email:    updateData.Email,
 		Role:     updateData.Role,
+		Gender:   updateData.Gender,
 	})
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user: " + result.Error.Error()})
 		return
 	}
 

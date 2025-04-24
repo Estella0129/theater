@@ -35,8 +35,8 @@
         <h3>演员阵容</h3>
         <div class="cast-grid">
           <div class="cast-item" v-for="actor in movie.Credits?.filter(c => c.credit_type === 'cast') || []" :key="actor.credit_id">
-            <el-image :src="getProfileImage(actor.People.profile_path)" fit="cover" class="cast-avatar"></el-image>
-            <p class="cast-name">{{ actor.People.name }}</p>
+            <el-image :src="getProfileImage(actor.People?.profile_path)" fit="cover" class="cast-avatar"></el-image>
+            <p class="cast-name">{{ actor.People?.name }}</p>
           </div>
         </div>
       </div>

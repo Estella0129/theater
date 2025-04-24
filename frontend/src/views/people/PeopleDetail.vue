@@ -157,6 +157,10 @@ export default {
   text-decoration: none;
 }
 
+.credit-list a{
+  text-decoration: none;
+}
+
 .credit-item {
   background: #fff;
   border-radius: 8px;

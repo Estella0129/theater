@@ -17,6 +17,12 @@
         <el-form-item label="角色">
           <el-input v-model="userForm.role" disabled></el-input>
         </el-form-item>
+        <el-form-item label="性别" prop="gender">
+          <el-select v-model="userForm.gender" placeholder="请选择性别">
+            <el-option label="男" value="male"></el-option>
+            <el-option label="女" value="female"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" native-type="submit" :loading="loading">保存修改</el-button>
         </el-form-item>
