@@ -4,10 +4,14 @@ import { ref } from 'vue'
 export const useMovieStore = defineStore('movie', () => {
   const movies = ref([])
 
-  const fetchMovies = async (query = { page: 1, pageSize: 20, genre: '' }) => {
+  const fetchMovies = async (query = { page: 1, pageSize: 20, genre: '', sort_by: '' }) => {
     try {
-      const response = await fetch(`/api/v1/frontend/movies?page=${query.page}&page_size=${query.pageSize}&genre=${query.genre}`)
-      const data = await response.json()
+      let url = `/api/v1/frontend/movies?page=${query.page}&page_size=${query.pageSize}`;
+      if (query.genre) url += `&genre=${query.genre}`;
+      if (query.sort_by) url += `&sort_by=${query.sort_by}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
       console.log('原始电影数据:', data.results);
       movies.value = data.results.map(movie => {
         return {
@@ -15,12 +19,11 @@ export const useMovieStore = defineStore('movie', () => {
           releaseDate: movie.release_date,
           rating: movie.vote_average / 2,
           director: movie.Director?.People?.name || "暂无导演信息"
-          // director: movie.Director?.People?.name || "暂无导演信息"
         };
       });
       return data;
     } catch (error) {
-      console.error('Failed to fetch movies:', error)
+      console.error('Failed to fetch movies:', error);
       throw error;
     }
   }
@@ -97,11 +100,16 @@ export const useMovieStore = defineStore('movie', () => {
       const response = await fetch(`/api/v1/frontend/movies/${id}`)
       const data = await response.json()
 
+      // 确保Credits数组存在
+      if (!data.Credits) {
+        data.Credits = []
+      }
+
       const director = data.Credits.find(c => c.credit_type == "crew" && c.order == 0)
       const cast = data.Credits.find(c => c.credit_type == "cast" && c.order == 0)
 
-      data.director = director && director.People ? director.People.name : ""
-      data.cast = cast && cast.People ? cast.People.name : ""
+      data.director = director && director.People ? director.People.name : "暂无导演信息"
+      data.cast = cast && cast.People ? cast.People.name : "暂无主演信息"
 
       data.rating = data.vote_average/2;
 

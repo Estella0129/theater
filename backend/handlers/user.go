@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Estella0129/theater/backend/config"
@@ -66,7 +67,11 @@ func RegisterUser(c *gin.Context) {
 	// 创建用户
 	result := config.DB.Create(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + result.Error.Error()})
 		return
 	}
 
@@ -288,7 +293,11 @@ func CreateUser(c *gin.Context) {
 	// 创建用户
 	result := config.DB.Create(&user)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + result.Error.Error()})
 		return
 	}
 

@@ -8,7 +8,7 @@
         <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
       </div>
     </div>
-    <!-- <h1>动画电影</h1>
+    <h1>动画电影</h1>
     <div class="movie-grid">
       <div v-for="movie in animationMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
         <el-image :src="getProfileImage(movie.poster_path)" :alt="movie.title" fit="cover" class="movie-poster" :fallback="'https://via.placeholder.com/200x300?text=No+Image'" />
@@ -23,7 +23,7 @@
         <h3>{{ movie.title }}</h3>
         <p>{{ movie.release_date ? movie.release_date.split('T')[0] : '' }}</p>
       </div>
-    </div> -->
+    </div>
     <h1>评分最高</h1>
     <div class="movie-grid">
       <div v-for="movie in topRatedMovies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
@@ -66,12 +66,14 @@ onMounted(async () => {
   await movieStore.fetchMovies()
   movies.value = movieStore.movies
   
-  // // 获取动画类型电影 (genre_id=16)
-  // const animationData = await movieStore.fetchMovies({genre: 14})
-  // animationMovies.value = animationData.results
-  // //获取动作类型电影 (genre_id=28)
-  // const actionData = await movieStore.fetchMovies({genre: 28})
-  // actionMovies.value = actionData.results
+  // 获取动画类型电影 (genre_id=14)
+  const animationData = await movieStore.fetchMovies({genre: 14, sort_by: 'vote_average.desc', page: 1, limit: 20 })
+  animationMovies.value = animationData.results.sort((a, b) => b.vote_average - a.vote_average)
+  
+  // 获取动作类型电影 (genre_id=28)
+  const actionData = await movieStore.fetchMovies({genre: 28, sort_by: 'vote_average.desc', page: 1, limit: 20 })
+  actionMovies.value = actionData.results.sort((a, b) => b.vote_average - a.vote_average)
+  
   // 获取评分最高的20部电影
   const topRatedData = await movieStore.fetchMovies({ sort_by: 'vote_average.desc', page: 1, limit: 20 })
   topRatedMovies.value = topRatedData.results.sort((a, b) => b.vote_average - a.vote_average)
