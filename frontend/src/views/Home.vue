@@ -1,5 +1,25 @@
 <template>
   <div class="home-container">
+    <!-- 新增banner区域 -->
+    <div class="banner">
+      <div class="banner-content">
+        <h1>欢迎来到网上影院</h1>
+        <p>这里有海量的电影和人物等你发现。快来探索吧！</p>
+        <div class="banner-search">
+          <el-input
+            v-model="searchQuery"
+            placeholder="搜索电影..."
+            @keyup.enter="handleSearch"
+          >
+            <template #append>
+              <el-button :icon="Search" @click="handleSearch" />
+            </template>
+          </el-input>
+        </div>
+      </div>
+    </div>
+
+    <!-- 原有内容保持不变 -->
     <h1>热门电影</h1>
     <div class="movie-grid">
       <div v-for="movie in movies" :key="movie.id" class="movie-card" @click="handleDetail(movie)">
@@ -47,6 +67,7 @@
 import { ref, onMounted } from 'vue'
 import { useMovieStore } from '../stores/movie'
 import { useRouter } from 'vue-router'
+import { Search } from '@element-plus/icons-vue'
 
 const movieStore = useMovieStore()
 const router = useRouter()
@@ -55,6 +76,7 @@ const animationMovies = ref([])
 const actionMovies = ref([])
 const topRatedMovies = ref([])
 const trendingMovies = ref([])
+const searchQuery = ref('')
 
 const getProfileImage = (path) => {
   return path 
@@ -86,18 +108,77 @@ onMounted(async () => {
 const handleDetail = (movie) => {
   router.push(`/movies/${movie.id}`)
 }
+
+const handleSearch = async () => {
+  if (searchQuery.value.trim()) {
+    await movieStore.searchMovies(searchQuery.value)
+    router.push({ path: '/search', query: { q: searchQuery.value } })
+    searchQuery.value = ''
+  }
+}
 </script>
 
 <style scoped>
+/* 新增banner样式 */
+.banner {
+  height: 400px;
+  background-image: url('/src/assets/banner.jpg');
+  background-size: 100% auto;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  position: relative;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(200, 200, 201, 0.502);
+}
+
+.banner-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.banner h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.banner p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.banner-search {
+  width: 80%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 原有样式保持不变 */
 .home-container {
-  padding: 2rem;
+  padding: 0 2rem;
 }
 
 .movie-grid {
   display: flex;
   overflow-x: auto;
-  gap: 1.5rem;
-  padding: 1rem 0;
+  gap: 20px;
+  margin-bottom: 2rem;
+  padding: 10px 0;
   scrollbar-width: none;
 }
 
@@ -106,20 +187,7 @@ const handleDetail = (movie) => {
 }
 
 .movie-card {
-  cursor: pointer;
-  transition: transform 0.2s;
   flex: 0 0 auto;
-  width: 150px;
-}
-
-.movie-card:hover {
-  transform: scale(1.05);
-}
-
-.movie-poster {
-  width: 150px;
-  height: 225px;
-  border-radius: 8px;
-  object-fit: cover;
+  width: 180px;
 }
 </style>
