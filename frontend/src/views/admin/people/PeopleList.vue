@@ -60,6 +60,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePeopleStore } from '../../../stores/people';
 import PeopleForm from './PeopleForm.vue';
+import { ElMessage } from 'element-plus';
 
 const router = useRouter();
 
@@ -126,6 +127,7 @@ const handleDelete = async (row) => {
   try {
     await peopleStore.deletePeople(row.id);
     await fetchData();
+    ElMessage.success('删除成功');
   } catch (error) {
     console.error('删除失败:', error);
   }

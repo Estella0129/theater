@@ -48,12 +48,14 @@ export const useGenreStore = defineStore('genre', () => {
 
   const updateGenre = async (genre) => {
     try {
+      // 确保genre对象是有效的JSON数据
+      const jsonData = JSON.parse(JSON.stringify(genre));
       const response = await fetch(`/api/v1/frontend/genres/${genre.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(genre)
+        body: JSON.stringify(jsonData)
       })
       const data = await response.json()
       return data

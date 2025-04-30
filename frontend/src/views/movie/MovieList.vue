@@ -8,8 +8,8 @@
         v-for="genre in genres"
         :key="genre.id"
         @click="handleGenreClick(genre)"
-        type="info"
-        class="genre-tag"
+        :type="selectedGenreId === genre.id ? 'primary' : 'info'"
+        :class="['genre-tag', { 'genre-tag-active': selectedGenreId === genre.id }]"
         >
         {{ genre.name }}
         </el-tag>
@@ -62,6 +62,7 @@ const totalPages = ref(1)
 const queryGenre = ref(1)
 const genres = ref([])
 const pageSize = ref(20)
+const selectedGenreId = ref(null)
 
 const loadMovies = async () => {
   loading.value = true
@@ -90,6 +91,7 @@ const handleGenreClick = (genre) => {
   router.push(`/movies?genre=${genre.id}&page=1`)
   queryGenre.value = genre.id
   currentPage.value = 1
+  selectedGenreId.value = genre.id
   loadMovies()
 }
 const handleDetail = (movie) => {
@@ -136,6 +138,11 @@ const loadGenres = async () => {
 .genre-tag:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.genre-tag-active {
+  background-color: #409eff;
+  color: white;
 }
 
 .genre-tags {
