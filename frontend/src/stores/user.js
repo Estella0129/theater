@@ -44,6 +44,7 @@ export const useUserStore = defineStore('user', {
           // 设置cookie，确保保存完整的用户信息
           const userData = {
             id: this.user.id,
+            username: this.user.username,
             name: this.user.name,
             email: this.user.email,
             role: this.user.role

@@ -4,7 +4,9 @@
       <template #header>
         <h2>个人中心</h2>
       </template>
+      
       <el-form :model="userForm" :rules="rules" ref="userFormRef" @submit.prevent="handleUpdate">
+        <p>个人信息</p>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="userForm.username" disabled></el-input>
         </el-form-item>
@@ -29,7 +31,7 @@
       </el-form>
       
       <el-divider />
-      
+      <p>修改密码</p>
       <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" @submit.prevent="handlePasswordChange">
         <el-form-item label="当前密码" prop="currentPassword">
           <el-input v-model="passwordForm.currentPassword" type="password"></el-input>
@@ -58,7 +60,8 @@ const userForm = reactive({
   username: '',
   name: '',
   email: '',
-  role: ''
+  role: '',
+  gender: ''
 })
 
 const passwordForm = reactive({
@@ -95,6 +98,7 @@ onMounted(async () => {
     userForm.name = user.name
     userForm.email = user.email
     userForm.role = user.role
+    userForm.gender = user.gender || ''
   }
 })
 

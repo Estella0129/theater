@@ -8,6 +8,12 @@
     <el-table :data="users" v-loading="loading" border>
       <el-table-column prop="id" label="ID" width="80"></el-table-column>
       <el-table-column prop="username" label="用户名"></el-table-column>
+      <el-table-column prop="name" label="姓名" width="120"></el-table-column>
+      <el-table-column prop="gender" label="性别" width="100">
+        <template #default="{ row }">
+          {{ row.gender === 'male' ? '男' : '女' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="email" label="邮箱"></el-table-column>
       <el-table-column prop="role" label="角色"></el-table-column>
       <el-table-column prop="created_at" label="创建时间" width="180">
@@ -45,6 +51,15 @@
       <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="80px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="userForm.username" :disabled="isEdit"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="userForm.name"></el-input>
+        </el-form-item>
+        <el-form-item label="性别" prop="gender">
+          <el-select v-model="userForm.gender">
+            <el-option label="男" value="male"></el-option>
+            <el-option label="女" value="female"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="userForm.email"></el-input>
@@ -90,6 +105,8 @@ const userFormRef = ref(null)
 
 const userForm = reactive({
   username: '',
+  name: '',
+  gender: 'male',
   email: '',
   password: '',
   role: 'user'
@@ -99,6 +116,10 @@ const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入姓名', trigger: 'blur' },
+    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
