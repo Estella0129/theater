@@ -17,13 +17,12 @@
 
       <el-table :data="filteredPeoples" style="width: 100%" border>
         <el-table-column prop="name" label="姓名" width="180" />
-        <el-table-column prop="original_name" label="原名" width="180" />
-        <el-table-column prop="role" label="角色" width="160">
+        <el-table-column prop="known_for_department" label="角色" width="160">
           <template #default="scope">
-            {{ formatRole(scope.row.role) }}
+            {{ formatRole(scope.row.known_for_department) }}
           </template>
         </el-table-column>
-        <el-table-column prop="gender" label="性别" width="120">
+        <el-table-column prop="gender" label="性别" width="80">
           <template #default="scope">
             {{ formatGender(scope.row.gender) }}
           </template>
@@ -33,8 +32,9 @@
             {{ formatDate(scope.row.birthday) }}
           </template>
         </el-table-column>
-        <el-table-column prop="place_of_birth" label="出生地" width="200" />
-        <el-table-column label="操作" width="240">
+        <el-table-column prop="place_of_birth" label="出生地" />
+        <el-table-column prop="biography" label="简介" show-overflow-tooltip />
+        <el-table-column label="操作" >
           <template #default="scope">
             <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
@@ -133,13 +133,24 @@ const handleDelete = async (row) => {
   }
 };
 
-const formatRole = (role) => {
+const formatRole = (known_for_department) => {
   const roles = {
-    actor: '演员',
-    director: '导演',
-    writer: '编剧'
+    Acting: '演员',
+    Directing: '导演',
+    Production: '编剧',
+    Camera: '摄影师',
+    Writing: '作家',
+    Editing: '剪辑师',
+    Sound: '音效师',
+    Art: '美术指导',
+    Costume: '服装与化妆',
+    Makeup: '化妆师',
+    Lighting: '灯光师',
+    Visual_effects: '视觉效果',
+    Crew: '工作人员',
+    Creator: '创作者'
   };
-  return roles[role] || role;
+  return roles[known_for_department] || known_for_department;
 };
 
 const formatDate = (dateString) => {
@@ -168,14 +179,21 @@ const formatGender = (gender) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
 }
 
 .el-table {
   margin-top: 20px;
+  width: 100%;
 }
 
 .el-pagination {
   margin-top: 20px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 </style>

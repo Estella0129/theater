@@ -26,7 +26,7 @@
               <img :src="getPosterImage(credit.Movie.poster_path)" alt="Movie poster" />
               <div class="credit-info">
                 <h4>{{ credit.Movie.title }}</h4>
-                <p>{{ credit.character || credit.job }}</p>
+                <p>{{ translateRole(credit.character || credit.job) }}</p>
                 <p>{{ formatDate(credit.Movie.release_date) }}</p>
               </div>
             </router-link>
@@ -79,6 +79,24 @@ export default {
     },
     openImage(path) {
       // 打开大图预览
+    },
+    translateRole(role) {
+      const translations = {
+        'Director': '导演',
+        'Writer': '编剧',
+        'Producer': '制片人',
+        'Actor': '演员',
+        'Actress': '演员',
+        'Cinematography': '摄影',
+        'Editor': '剪辑',
+        'Music': '音乐',
+        'Sound': '音效',
+        'Art': '美术',
+        'Costume': '服装',
+        'Makeup': '化妆',
+        'Visual Effects': '视觉效果'
+      };
+      return translations[role] || role;
     }
   },
   async created() {

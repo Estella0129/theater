@@ -10,14 +10,12 @@
         <el-form-item label="姓名" prop="name">
           <el-input v-model="peopleForm.name"></el-input>
         </el-form-item>
-        <el-form-item label="原名" prop="original_name">
-          <el-input v-model="peopleForm.original_name"></el-input>
-        </el-form-item>
-        <el-form-item label="角色" prop="role">
-          <el-select v-model="peopleForm.role">
-            <el-option label="演员" value="actor"></el-option>
-            <el-option label="导演" value="director"></el-option>
-            <el-option label="编剧" value="writer"></el-option>
+        <el-form-item label="角色" prop="known_for_department">
+          <el-select v-model="peopleForm.known_for_department">
+            <el-option label="演员" value="acting"></el-option>
+            <el-option label="导演" value="directing"></el-option>
+            <el-option label="制作人" value="production"></el-option>
+            <el-option label="摄影师" value="camera"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="性别" prop="gender">
