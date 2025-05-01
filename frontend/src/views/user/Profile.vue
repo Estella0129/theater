@@ -5,30 +5,54 @@
         <h2>个人中心</h2>
       </template>
       
-      <el-form :model="userForm" :rules="rules" ref="userFormRef" @submit.prevent="handleUpdate">
-        <p>个人信息</p>
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="userForm.name"></el-input>
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="userForm.email"></el-input>
-        </el-form-item>
-        <el-form-item label="角色">
-          <el-input v-model="userForm.role" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-select v-model="userForm.gender" placeholder="请选择性别">
-            <el-option label="男" value="male"></el-option>
-            <el-option label="女" value="female"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" native-type="submit" :loading="loading">保存修改</el-button>
-        </el-form-item>
-      </el-form>
+      <div v-if="!isEditMode">
+          <p>个人信息</p>
+          <el-form-item label="用户名">
+            <el-input v-model="userForm.username" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="姓名">
+            <el-input v-model="userForm.name" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="邮箱">
+            <el-input v-model="userForm.email" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="角色">
+            <el-input v-model="userForm.role" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="性别">
+            <el-input :value="userForm.gender === 'male' ? '男' : '女'" disabled></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="isEditMode = true">编辑信息</el-button>
+          </el-form-item>
+        </div>
+        <div v-else>
+          <p>个人信息</p>
+          <el-form :model="userForm" :rules="rules" ref="userFormRef" @submit.prevent="handleUpdate">
+            <el-form-item label="用户名" prop="username">
+              <el-input v-model="userForm.username" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="姓名" prop="name">
+              <el-input v-model="userForm.name"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="userForm.email"></el-input>
+            </el-form-item>
+            <el-form-item label="角色">
+              <el-input v-model="userForm.role" disabled></el-input>
+            </el-form-item>
+            <el-form-item label="性别" prop="gender">
+              <el-select v-model="userForm.gender" placeholder="请选择性别">
+                <el-option label="男" value="male"></el-option>
+                <el-option label="女" value="female"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" native-type="submit" :loading="loading">保存修改</el-button>
+              <el-button @click="isEditMode = false">取消</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
       
       <el-divider />
       <p>修改密码</p>
@@ -51,6 +75,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '../../stores/user'
 import { ElMessage } from 'element-plus'
+
+const isEditMode = ref(false)
 
 const userStore = useUserStore()
 const userFormRef = ref(null)
@@ -113,9 +139,11 @@ const handleUpdate = async () => {
         await userStore.updateUser(user.id, {
           username: userForm.username,
           name: userForm.name,
-          email: userForm.email
+          email: userForm.email,
+          gender: userForm.gender
         })
         ElMessage.success('更新成功')
+        isEditMode.value = false
       } catch (error) {
         ElMessage.error(error.message || '更新失败')
       } finally {

@@ -67,8 +67,11 @@ func RegisterUser(c *gin.Context) {
 	// 创建用户
 	result := config.DB.Create(&user)
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
-			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.username") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+			return
+		} else if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.email") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + result.Error.Error()})
@@ -143,7 +146,7 @@ func GetUsers(c *gin.Context) {
 	config.DB.Model(&models.User{}).Count(&total)
 
 	// 获取分页数据
-	result := config.DB.Select("id, username, email, role, created_at, updated_at").Offset(offset).Limit(pageSize).Find(&users)
+	result := config.DB.Select("id, username, name, email, role, gender, created_at, updated_at").Offset(offset).Limit(pageSize).Find(&users)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
 		return
@@ -163,7 +166,7 @@ func GetUser(c *gin.Context) {
 	id := c.Param("id")
 
 	var user models.User
-	result := config.DB.Select("id, username, email, role, created_at, updated_at").First(&user, id)
+	result := config.DB.Select("id, username, name, email, role, gender, created_at, updated_at").First(&user, id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -195,6 +198,10 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	user.Name = updateData.Name
+	user.Email = updateData.Email
+	user.Gender = updateData.Gender
+
 	// 更新用户信息
 	result := config.DB.Model(&user).Updates(models.User{
 		Username: updateData.Username,
@@ -205,8 +212,11 @@ func UpdateUser(c *gin.Context) {
 	})
 
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
-			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.username") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+			return
+		} else if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.email") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user: " + result.Error.Error()})
@@ -299,8 +309,11 @@ func CreateUser(c *gin.Context) {
 	// 创建用户
 	result := config.DB.Create(&user)
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed") {
-			c.JSON(http.StatusConflict, gin.H{"error": "Username or email already exists"})
+		if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.username") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+			return
+		} else if strings.Contains(result.Error.Error(), "UNIQUE constraint failed: users.email") {
+			c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + result.Error.Error()})

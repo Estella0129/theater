@@ -56,7 +56,8 @@
           <el-input v-model="userForm.name"></el-input>
         </el-form-item>
         <el-form-item label="性别" prop="gender">
-          <el-select v-model="userForm.gender">
+          <el-select v-model="userForm.gender" placeholder="请选择性别">
+            <el-option label="未知" value=""></el-option>
             <el-option label="男" value="male"></el-option>
             <el-option label="女" value="female"></el-option>
           </el-select>
@@ -106,7 +107,7 @@ const userFormRef = ref(null)
 const userForm = reactive({
   username: '',
   name: '',
-  gender: 'male',
+  gender: '',
   email: '',
   password: '',
   role: 'user'
@@ -207,7 +208,11 @@ const handleSubmit = async () => {
         dialogVisible.value = false
         loadUsers()
       } catch (error) {
-        ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        if (error.message.includes('UNIQUE constraint failed: users.id')) {
+          ElMessage.error('用户ID已存在，请尝试重新创建')
+        } else {
+          ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
+        }
       } finally {
         submitting.value = false
       }
@@ -222,6 +227,8 @@ const resetForm = () => {
   }
   Object.assign(userForm, {
     username: '',
+    name: '',
+    gender: '',
     email: '',
     password: '',
     role: 'user'
