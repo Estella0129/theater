@@ -28,8 +28,14 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+      v-model="currentPage"
+      :page-size="pageSize"
+      layout=" prev, pager, next"
+      :total="total"
+      @current-change="handlePageChange"
+    />
     </el-card>
-    <MovieForm ref="movieFormRef" @submit-success="onMovieFormSuccess" />
   </div>
 </template>
 
@@ -37,14 +43,16 @@
 import { ref, onMounted } from 'vue'
 import { useMovieStore } from '../../../stores/movie'
 import { ElMessage } from 'element-plus'
-import MovieForm from './MovieForm.vue'
 
 const movieStore = useMovieStore()
 const movies = ref([])
 const movieFormRef = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 onMounted(async () => {
-  await movieStore.fetchAdminMovies() // 修改为调用后台接口
+  await fetchMovies()
 })
 
 const openMovieForm = async (movie = null) => {
@@ -60,8 +68,21 @@ const openMovieForm = async (movie = null) => {
   }
 }
 
-const onMovieFormSuccess = async () => {
-  await movieStore.fetchAdminMovies() // 修改为调用后台接口
+const fetchMovies = async () => {
+  try {
+    const response = await movieStore.fetchAdminMovies({ 
+      page: currentPage.value, 
+      pageSize: pageSize.value 
+    })
+    total.value = response.total
+  } catch (error) {
+    ElMessage.error('获取电影列表失败: ' + error.message)
+  }
+}
+
+const handlePageChange = async (page) => {
+  currentPage.value = page
+  await fetchMovies()
 }
 
 const handleDelete = async (movie) => {
@@ -90,5 +111,11 @@ const formatDate = (dateString) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.el-pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 </style>
