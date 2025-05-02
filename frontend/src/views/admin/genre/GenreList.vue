@@ -5,7 +5,7 @@
         <template #header>
       <div class="header">
         <h2>类型管理</h2>
-      <el-button type="primary" @click="showAddDialog = true">添加类型</el-button>
+      <el-button type="primary" @click="handleAdd">添加类型</el-button>
       </div>
       
       </template>
@@ -63,6 +63,14 @@ const total = ref(0)
 
 // 对话框相关
 const showDialog = ref(false)
+const showAddDialog = ref(false)
+
+const handleAdd = () => {
+  form.value = { id: null, name: '' }
+  dialogTitle.value = '添加类型'
+  isEditMode.value = false
+  showDialog.value = true
+}
 const dialogTitle = ref('')
 const form = ref({
   id: null,

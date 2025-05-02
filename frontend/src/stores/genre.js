@@ -6,7 +6,7 @@ export const useGenreStore = defineStore('genre', () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch(`/api/v1/frontend/genres`)
+      const response = await fetch(`/api/v1/admin/genres`)
       const data = await response.json()
       genres.value = data
       console.log(data)
@@ -20,7 +20,7 @@ export const useGenreStore = defineStore('genre', () => {
 
   const getGenreById = async (id) => {
     try {
-      const response = await fetch(`/api/v1/frontend/genres/${id}`)
+      const response = await fetch(`/api/v1/admin/genres/${id}`)
       const data = await response.json()
       return data
     } catch (error) {
@@ -31,7 +31,7 @@ export const useGenreStore = defineStore('genre', () => {
 
   const addGenre = async (genre) => {
     try {
-      const response = await fetch('/api/v1/frontend/genres', {
+      const response = await fetch('/api/v1/admin/genres', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -50,7 +50,7 @@ export const useGenreStore = defineStore('genre', () => {
     try {
       // 确保genre对象是有效的JSON数据
       const jsonData = JSON.parse(JSON.stringify(genre));
-      const response = await fetch(`/api/v1/frontend/genres/${genre.id}`, {
+      const response = await fetch(`/api/v1/admin/genres/${genre.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ export const useGenreStore = defineStore('genre', () => {
 
   const deleteGenre = async (id) => {
     try {
-      const response = await fetch(`/api/v1/frontend/genres/${id}`, {
+      const response = await fetch(`/api/v1/admin/genres/${id}`, {
         method: 'DELETE'
       })
       return response.ok
