@@ -431,8 +431,9 @@ func GetAdminMovies(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影总数失败"})
 		return
 	}
-
+	dbQuery.Preload("Director", "job = ?", "Director").Preload("Director.People")
 	// 获取分页数据，按ID逆序排列
+
 	if err := dbQuery.Order("id DESC").Offset(offset).Limit(pageSize).Find(&movies).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取电影列表失败"})
 		return
