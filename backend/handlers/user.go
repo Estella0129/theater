@@ -102,6 +102,12 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
+	// 检查用户是否被冻结
+	if user.IsFrozen {
+		c.JSON(http.StatusForbidden, gin.H{"error": "用户已被冻结，请联系管理员"})
+		return
+	}
+
 	// 验证密码
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginData.Password))
 	if err != nil {
@@ -173,6 +179,26 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+// ToggleFreezeUser 切换用户冻结状态
+func ToggleFreezeUser(c *gin.Context) {
+	id := c.Param("id")
+
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// 切换冻结状态
+	user.IsFrozen = !user.IsFrozen
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User status updated successfully"})
 }
 
 // UpdateUser 更新用户信息

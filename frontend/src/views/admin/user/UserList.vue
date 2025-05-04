@@ -21,10 +21,20 @@
           {{ new Date(row.created_at).toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200">
+      <el-table-column label="状态" width="100">
+        <template #default="{ row }">
+          <el-tag :type="row.is_frozen ? 'danger' : 'success'">
+            {{ row.is_frozen ? '已冻结' : '正常' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="250">
         <template #default="{ row }">
           <el-button size="small" @click="handleEdit(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button size="small" :type="row.is_frozen ? 'success' : 'warning'" @click="handleToggleFreeze(row)">
+            {{ row.is_frozen ? '解冻' : '冻结' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -186,6 +196,23 @@ const handleDelete = (row) => {
       loadUsers()
     } catch (error) {
       ElMessage.error(error.message || '删除失败')
+    }
+  })
+}
+
+const handleToggleFreeze = async (row) => {
+  const action = row.is_frozen ? '解冻' : '冻结'
+  ElMessageBox.confirm(`确定要${action}该用户吗？`, '提示', {
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await userStore.toggleFreezeUser(row.id, row.is_frozen ? 0 : 1)
+      ElMessage.success(`${action}成功`)
+      row.is_frozen = !row.is_frozen
+      // 强制更新视图
+      users.value = [...users.value]
+    } catch (error) {
+      ElMessage.error(error.message || `${action}失败`)
     }
   })
 }

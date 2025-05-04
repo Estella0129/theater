@@ -104,6 +104,15 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         throw new Error(error.response?.data?.error || '删除用户失败')
       }
+    },
+    
+    async toggleFreezeUser(userId) {
+      try {
+        const response = await axios.patch(`/api/v1/admin/users/${userId}/toggle-freeze`)
+        return response.data
+      } catch (error) {
+        throw new Error(error.response?.data?.error || '操作失败')
+      }
     }
   }
 })

@@ -14,6 +14,7 @@ type User struct {
 	Email     string         `json:"email" gorm:"unique;not null"`
 	Role      string         `json:"role" gorm:"default:'user'"`
 	Gender    string         `json:"gender" gorm:"default:''"`
+	IsFrozen  bool           `json:"is_frozen" gorm:"default:false"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`

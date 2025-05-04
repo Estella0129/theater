@@ -62,10 +62,11 @@ to quickly create a Cobra application.`,
 				admin.POST("/upload-image", handlers.UploadImage) // 上传图片
 
 				// 用户管理路由
-				admin.POST("/users", handlers.CreateUser)       // 管理员创建用户
-				admin.GET("/users", handlers.GetUsers)          // 获取用户列表
-				admin.PUT("/users/:id", handlers.UpdateUser)    // 更新用户信息
-				admin.DELETE("/users/:id", handlers.DeleteUser) // 删除用户
+				admin.POST("/users", handlers.CreateUser)                          // 管理员创建用户
+				admin.GET("/users", handlers.GetUsers)                             // 获取用户列表
+				admin.PUT("/users/:id", handlers.UpdateUser)                       // 更新用户信息
+				admin.DELETE("/users/:id", handlers.DeleteUser)                    // 删除用户
+				admin.PATCH("/users/:id/toggle-freeze", handlers.ToggleFreezeUser) // 切换用户冻结状态
 
 				// 电影管理路由
 				admin.POST("/movies", handlers.CreateMovie)       // 创建电影
