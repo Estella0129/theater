@@ -27,7 +27,15 @@ func Images(movieID int) (err error) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
+	if res == nil || res.StatusCode != http.StatusOK {
+		if res != nil {
+			return fmt.Errorf("请求失败，状态码: %d", res.StatusCode)
+		}
+		return fmt.Errorf("请求未成功，响应为 nil")
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	type imagesResponse struct {

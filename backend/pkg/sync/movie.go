@@ -48,15 +48,16 @@ func SyncMovies() error {
 
 		url := fmt.Sprintf("https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=zh-CN&page=%d&sort_by=popularity.desc", page)
 
-		req, err := http.NewRequest("GET", url, nil)
+		var req *http.Request
+		req, err = http.NewRequest("GET", url, nil)
 		if err != nil {
 			return fmt.Errorf("创建请求失败: %v", err)
 		}
 
 		req.Header.Add("accept", "application/json")
-		token, err := config.GetTMDBToken()
-		if err != nil {
-			return fmt.Errorf("获取TMDB Token失败: %v", err)
+		token, error := config.GetTMDBToken()
+		if error != nil {
+			return fmt.Errorf("获取TMDB Token失败: %v", error)
 		}
 		req.Header.Add("Authorization", "Bearer "+token)
 
@@ -87,9 +88,9 @@ func SyncMovies() error {
 			return fmt.Errorf("API返回错误状态码: %d", res.StatusCode)
 		}
 
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			return fmt.Errorf("读取响应体失败: %v", err)
+		body, error := io.ReadAll(res.Body)
+		if error != nil {
+			return fmt.Errorf("读取响应体失败: %v", error)
 		}
 
 		var tmdbResponse struct {
@@ -99,8 +100,8 @@ func SyncMovies() error {
 			Results      []TmdbMovie
 		}
 
-		if err := json.Unmarshal(body, &tmdbResponse); err != nil {
-			return fmt.Errorf("解析JSON失败: %v", err)
+		if error := json.Unmarshal(body, &tmdbResponse); error != nil {
+			return fmt.Errorf("解析JSON失败: %v", error)
 		}
 
 		totalPages = tmdbResponse.TotalPages
@@ -144,8 +145,15 @@ func SyncMovies() error {
 		}
 
 		for _, genreID := range tmdbMovie.GenreIDs {
-			relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(genreID)}
-			config.DB.Create(&relation)
+			// 先检查关联是否已存在
+			var existingRelation models.MovieGenre
+			if error := config.DB.Where("movie_id = ? AND genre_id = ?", tmdbMovie.ID, genreID).First(&existingRelation).Error; error != nil {
+				// 不存在则创建
+				relation := models.MovieGenre{MovieID: uint(tmdbMovie.ID), GenreID: uint(genreID)}
+				if error := config.DB.Create(&relation).Error; err != nil {
+					return fmt.Errorf("创建电影类型关联失败: %v", error)
+				}
+			}
 		}
 
 		if result.Error != nil {
@@ -187,7 +195,9 @@ func GetMovieDetail(movieID int) (*TmdbMovie, error) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, _ := io.ReadAll(res.Body)
 	var movie TmdbMovie
 	err = json.Unmarshal(body, &movie)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/Estella0129/theater/backend/config"
 	"github.com/Estella0129/theater/backend/models"
@@ -63,7 +64,17 @@ func SyncPeople(movieID int) (err error) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	if res != nil {
+		if res.StatusCode >= 200 && res.StatusCode < 300 {
+			defer res.Body.Close()
+		} else {
+			// 处理非成功状态码
+			return fmt.Errorf("请求失败，状态码: %d", res.StatusCode)
+		}
+	} else {
+		// 处理请求未成功发送的情况
+		return fmt.Errorf("请求未成功发送")
+	}
 	body, _ = io.ReadAll(res.Body)
 
 	var data PeoplesResponse
@@ -174,10 +185,11 @@ func syncCredit(movieID int, id string, index int) (err error) {
 func syncPeople(id int) (err error) {
 
 	var People models.People
-	config.DB.Where("id = ?", id).First(&People)
-
-	if People.ID != 0 {
-		return
+	if error := config.DB.Where("id = ?", id).First(&People).Error; error != nil {
+		if !strings.Contains(error.Error(), "record not found") {
+			return fmt.Errorf("查询人员失败: %v", error)
+		}
+		// 记录不存在，继续创建
 	}
 	fmt.Println(fmt.Printf("syncPeople: %d\n", id))
 
@@ -195,7 +207,17 @@ func syncPeople(id int) (err error) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	if res != nil {
+		if res.StatusCode >= 200 && res.StatusCode < 300 {
+			defer res.Body.Close()
+		} else {
+			// 处理非成功状态码
+			return fmt.Errorf("请求失败，状态码: %d", res.StatusCode)
+		}
+	} else {
+		// 处理请求未成功发送的情况
+		return fmt.Errorf("请求未成功发送")
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	err = json.Unmarshal(body, &People)
@@ -221,7 +243,9 @@ func getCreditResponse(id string) (response *CreditResponse, err error) {
 
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	response = &CreditResponse{}
