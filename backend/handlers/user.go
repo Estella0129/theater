@@ -198,7 +198,10 @@ func ToggleFreezeUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User status updated successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "User status updated successfully",
+		"is_frozen": user.IsFrozen,
+	})
 }
 
 // UpdateUser 更新用户信息
@@ -217,6 +220,7 @@ func UpdateUser(c *gin.Context) {
 		Email    string `json:"email"`
 		Role     string `json:"role"`
 		Gender   string `json:"gender"`
+		IsFrozen bool   `json:"is_frozen"`
 	}
 
 	if err := c.ShouldBindJSON(&updateData); err != nil {
@@ -224,11 +228,11 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// 更新用户信息（不改变冻结状态）
 	user.Name = updateData.Name
 	user.Email = updateData.Email
 	user.Gender = updateData.Gender
 
-	// 更新用户信息
 	result := config.DB.Model(&user).Updates(models.User{
 		Username: updateData.Username,
 		Name:     updateData.Name,

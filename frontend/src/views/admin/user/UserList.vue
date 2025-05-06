@@ -1,5 +1,6 @@
 <template>
   <div class="user-list">
+    <el-card>
     <div class="header">
       <h2>用户管理</h2>
       <el-button type="primary" @click="handleAdd">创建用户</el-button>
@@ -41,16 +42,14 @@
 
     <div class="pagination">
       <el-pagination
-        :current-page="currentPage"
+        v-model="currentPage"
         :page-size="pageSize"
+        layout="prev, pager, next"
         :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next"
-        @update:current-page="handleCurrentChange"
-        @update:page-size="handleSizeChange"
+        @current-change="handleCurrentChange"
       />
     </div>
-
+    </el-card>
     <!-- 用户表单对话框 -->
     <el-dialog
       :title="dialogTitle"
@@ -209,6 +208,8 @@ const handleToggleFreeze = async (row) => {
       await userStore.toggleFreezeUser(row.id, row.is_frozen ? 0 : 1)
       ElMessage.success(`${action}成功`)
       row.is_frozen = !row.is_frozen
+      // 保存状态到localStorage
+      localStorage.setItem(`user_${row.id}_frozen`, row.is_frozen ? '1' : '0')
       // 强制更新视图
       users.value = [...users.value]
     } catch (error) {
@@ -226,14 +227,21 @@ const handleSubmit = async () => {
       submitting.value = true
       try {
         if (isEdit.value) {
-          await userStore.updateUser(userForm.id, userForm)
+          const { is_frozen, ...updateData } = userForm
+          await userStore.updateUser(userForm.id, updateData)
           ElMessage.success('更新成功')
+          // 保持当前用户的冻结状态
+          const currentUser = users.value.find(u => u.id === userForm.id)
+          if (currentUser) {
+            currentUser.is_frozen = is_frozen // 使用解构出来的原始冻结状态
+          }
         } else {
           await userStore.register(userForm)
           ElMessage.success('创建成功')
         }
         dialogVisible.value = false
-        loadUsers()
+        // 不再重新加载整个用户列表，避免状态丢失
+        users.value = [...users.value]
       } catch (error) {
         if (error.message.includes('UNIQUE constraint failed: users.id')) {
           ElMessage.error('用户ID已存在，请尝试重新创建')
@@ -263,7 +271,15 @@ const resetForm = () => {
 }
 
 onMounted(() => {
-  loadUsers()
+  loadUsers().then(() => {
+    // 从localStorage恢复冻结状态
+    users.value.forEach(user => {
+      const frozenState = localStorage.getItem(`user_${user.id}_frozen`)
+      if (frozenState !== null) {
+        user.is_frozen = frozenState === '1'
+      }
+    })
+  })
 })
 </script>
 
@@ -282,6 +298,6 @@ onMounted(() => {
 .pagination {
   margin-top: 20px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 </style>
