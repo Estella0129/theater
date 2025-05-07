@@ -268,10 +268,17 @@ func UpdatePassword(c *gin.Context) {
 	var passwordData struct {
 		CurrentPassword string `json:"current_password" binding:"required"`
 		NewPassword     string `json:"new_password" binding:"required"`
+		ConfirmPassword string `json:"confirm_password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&passwordData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid password data"})
+		return
+	}
+
+	// 验证两次新密码是否一致
+	if passwordData.NewPassword != passwordData.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "New passwords do not match"})
 		return
 	}
 

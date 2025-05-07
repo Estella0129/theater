@@ -67,6 +67,7 @@ to quickly create a Cobra application.`,
 				admin.PUT("/users/:id", handlers.UpdateUser)                       // 更新用户信息
 				admin.DELETE("/users/:id", handlers.DeleteUser)                    // 删除用户
 				admin.PATCH("/users/:id/toggle-freeze", handlers.ToggleFreezeUser) // 切换用户冻结状态
+				admin.PATCH("/users/:id/update_password", handlers.UpdatePassword) // 修改用户密码
 
 				// 电影管理路由
 				admin.POST("/movies", handlers.CreateMovie)       // 创建电影

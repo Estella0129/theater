@@ -58,10 +58,13 @@
       <p>修改密码</p>
       <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" @submit.prevent="handlePasswordChange">
         <el-form-item label="当前密码" prop="currentPassword">
-          <el-input v-model="passwordForm.currentPassword" type="password"></el-input>
+          <el-input v-model="passwordForm.currentPassword" type="password" show-password></el-input>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
-          <el-input v-model="passwordForm.newPassword" type="password"></el-input>
+          <el-input v-model="passwordForm.newPassword" type="password" show-password></el-input>
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input v-model="passwordForm.confirmPassword" type="password" show-password></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" native-type="submit" :loading="passwordLoading">修改密码</el-button>
@@ -80,6 +83,7 @@ const isEditMode = ref(false)
 
 const userStore = useUserStore()
 const userFormRef = ref(null)
+const passwordFormRef = ref(null)
 const loading = ref(false)
 
 const userForm = reactive({
@@ -92,7 +96,8 @@ const userForm = reactive({
 
 const passwordForm = reactive({
   currentPassword: '',
-  newPassword: ''
+  newPassword: '',
+  confirmPassword: ''
 })
 
 const passwordLoading = ref(false)
@@ -114,6 +119,19 @@ const passwordRules = {
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== passwordForm.newPassword) {
+          callback(new Error('两次输入密码不一致!'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 }
 
@@ -160,15 +178,29 @@ const handlePasswordChange = async () => {
       passwordLoading.value = true
       try {
         const user = userStore.currentUser
-        await userStore.changePassword({
+        if (passwordForm.currentPassword === passwordForm.newPassword) {
+          throw new Error('新密码不能与当前密码相同') 
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+          throw new Error('两次输入的新密码不一致')
+        }
+        if (passwordForm.newPassword.length < 8) {
+          throw new Error('密码长度不能少于8位')
+        }
+        const result = await userStore.UpdatePassword({
           current_password: passwordForm.currentPassword,
-          new_password: passwordForm.newPassword
+          new_password: passwordForm.newPassword,
+          confirm_password: passwordForm.confirmPassword
         })
+        if (result && result.error) {
+          throw new Error(result.error)
+        }
         ElMessage.success('密码修改成功')
         passwordForm.currentPassword = ''
         passwordForm.newPassword = ''
+        passwordForm.confirmPassword = ''
       } catch (error) {
-        ElMessage.error(error.message || '密码修改失败')
+        ElMessage.error(error.message || '当前密码输入错误')
       } finally {
         passwordLoading.value = false
       }
