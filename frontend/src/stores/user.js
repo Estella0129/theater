@@ -24,6 +24,15 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
+    async UpdatePassword(passwordData) {
+      try {
+        const response = await axios.patch(`/api/v1/admin/users/${this.user.id}/update_password`, passwordData)
+        return response.data
+      } catch (error) {
+        throw new Error(error.response?.data?.error || '密码修改失败')
+      }
+    },
+    
     async register(userData) {
       try {
         const response = await axios.post('/api/v1/frontend/users/register', userData)

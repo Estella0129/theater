@@ -1,5 +1,6 @@
 <template>
   <div class="admin-movie-list">
+    <MovieForm ref="movieFormRef" />
     <el-card>
       <template #header>
         <div class="header">
@@ -43,6 +44,7 @@
 import { ref, onMounted } from 'vue'
 import { useMovieStore } from '../../../stores/movie'
 import { ElMessage } from 'element-plus'
+import MovieForm from './MovieForm.vue'
 
 const movieStore = useMovieStore()
 const movies = ref([])
@@ -50,6 +52,18 @@ const movieFormRef = ref(null)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+
+defineExpose({
+  open(data) {
+    dialogTitle.value = data ? '编辑电影' : '添加电影'
+    if (data) {
+      Object.assign(form, data)
+    } else {
+      resetForm()
+    }
+    dialogVisible.value = true
+  }
+})
 
 onMounted(async () => {
   await fetchMovies()
