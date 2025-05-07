@@ -86,6 +86,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
 const userStore = useUserStore()
   
+  // 未登录用户只能访问首页、登录和注册页面
+  const allowedRoutes = ['Home', 'Login', 'Register']
+  if (!userStore.isLoggedIn && !allowedRoutes.includes(to.name)) {
+    next('/')
+    return
+  }
+  
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
   } else if (to.meta.requiresAdmin && userStore.currentUser?.role !== 'admin') {

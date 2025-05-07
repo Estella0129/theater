@@ -25,7 +25,7 @@
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="row.is_frozen ? 'danger' : 'success'">
-            {{ row.is_frozen ? '已冻结' : '正常' }}
+            {{ row.is_frozen ? '已禁用' : '正常' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -34,7 +34,7 @@
           <el-button size="small" @click="handleEdit(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
           <el-button size="small" :type="row.is_frozen ? 'success' : 'warning'" @click="handleToggleFreeze(row)">
-            {{ row.is_frozen ? '解冻' : '冻结' }}
+            {{ row.is_frozen ? '启用' : '禁用' }}
           </el-button>
         </template>
       </el-table-column>
@@ -200,7 +200,7 @@ const handleDelete = (row) => {
 }
 
 const handleToggleFreeze = async (row) => {
-  const action = row.is_frozen ? '解冻' : '冻结'
+  const action = row.is_frozen ? '启用' : '禁用'
   ElMessageBox.confirm(`确定要${action}该用户吗？`, '提示', {
     type: 'warning'
   }).then(async () => {
